@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://bu76lxvtlxjrg"]
+
+[ext_resource type="Script" path="res://scripts/gd3dtopdown.gd" id="1_xkpta"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6xfjb"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3iy6x"]
+albedo_color = Color(0.886275, 0.6, 0.592157, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_rwd8d"]
+material = SubResource("StandardMaterial3D_3iy6x")
+
+[sub_resource type="BoxMesh" id="BoxMesh_mxfxm"]
+size = Vector3(0.1, 0.1, 2)
+
+[node name="Gd3Dtopdown" type="GD3Dtopdown"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.36692, 0)
+script = ExtResource("1_xkpta")
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_6xfjb")
+
+[node name="MeshInstance3d" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_rwd8d")
+
+[node name="Camera3d" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.682113, 0.731247, 0, -0.731247, 0.682113, -0.427718, 5.49192, 5.06006)
+
+[node name="MeshInstance3d2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2894)
+mesh = SubResource("BoxMesh_mxfxm")

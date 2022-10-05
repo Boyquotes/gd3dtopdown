@@ -1,0 +1,62 @@
+[gd_scene load_steps=7 format=3 uid="uid://d4b7fmww6td57"]
+
+[ext_resource type="PackedScene" uid="uid://bu76lxvtlxjrg" path="res://gd3dtopdown.tscn" id="1_744nn"]
+
+[sub_resource type="Texture2D" id="Texture2D_4kroa"]
+resource_local_to_scene = false
+resource_name = ""
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_08qe3"]
+albedo_texture = SubResource("Texture2D_4kroa")
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mlj0e"]
+
+[sub_resource type="Sky" id="Sky_ymvgo"]
+sky_material = SubResource("ProceduralSkyMaterial_mlj0e")
+
+[sub_resource type="Environment" id="Environment_14mf4"]
+background_mode = 2
+background_energy_multiplier = 3.35
+sky = SubResource("Sky_ymvgo")
+ambient_light_source = 3
+ambient_light_color = Color(1, 1, 1, 1)
+
+[node name="MainScene" type="Node3D"]
+
+[node name="CsgCombiner3d" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="CsgBox3d" type="CSGBox3D" parent="CsgCombiner3d"]
+size = Vector3(26, 1, 18)
+material = SubResource("ORMMaterial3D_08qe3")
+
+[node name="CsgCylinder3d" type="CSGCylinder3D" parent="CsgCombiner3d"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.3105, 1.98527, 0)
+radius = 2.22515
+height = 4.0
+
+[node name="CsgBox3d2" type="CSGBox3D" parent="CsgCombiner3d"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, 0)
+
+[node name="CsgBox3d3" type="CSGBox3D" parent="CsgCombiner3d"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1.433, 0)
+size = Vector3(1, 2, 1)
+
+[node name="CsgBox3d4" type="CSGBox3D" parent="CsgCombiner3d"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -6)
+size = Vector3(10, 4, 6)
+
+[node name="CsgBox3d5" type="CSGBox3D" parent="CsgCombiner3d"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.22258, -6)
+operation = 2
+size = Vector3(8, 3.43177, 4.03111)
+
+[node name="CsgBox3d6" type="CSGBox3D" parent="CsgCombiner3d"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.94784, -3.34691)
+operation = 2
+size = Vector3(1.65004, 2.90576, 2.10224)
+
+[node name="Gd3Dtopdown" parent="." instance=ExtResource("1_744nn")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_14mf4")
