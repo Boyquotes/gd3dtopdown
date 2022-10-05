@@ -420,3 +420,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+*.dblite
