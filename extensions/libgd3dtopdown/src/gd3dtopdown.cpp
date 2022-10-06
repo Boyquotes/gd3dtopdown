@@ -38,15 +38,16 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_player_jump_velocity"), &GD3Dtopdown::get_player_jump_velocity);
     ClassDB::bind_method(D_METHOD("set_player_jump_velocity", "player_jump_velocity"), &GD3Dtopdown::set_player_jump_velocity);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "player_jump_velocity"), "set_player_jump_velocity", "get_player_jump_velocity");
-
+    
 
     ClassDB::bind_method(D_METHOD("get_lookat_position"), &GD3Dtopdown::get_lookat_position);
     ClassDB::bind_method(D_METHOD("set_lookat_position", "lookat_position"), &GD3Dtopdown::set_lookat_position);
-
-    ClassDB::bind_method(D_METHOD("get_camera_transform"), &GD3Dtopdown::get_camera_transform);
-    ClassDB::bind_method(D_METHOD("set_camera_transform", "camera_transform"), &GD3Dtopdown::set_camera_transform);
     
+    ClassDB::bind_method(D_METHOD("get_camera_node_path"), &GD3Dtopdown::get_camera_node_path);
+    ClassDB::bind_method(D_METHOD("set_camera_node_path", "camera_node"), &GD3Dtopdown::set_camera_node_path);
+    ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "camera_node_path"), "set_camera_node_path", "get_camera_node_path");
 }
+
 //Initializer functions, get pointers to Input and project settings. Set gravity value
 bool GD3Dtopdown::_initialize()
 {
@@ -65,7 +66,7 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not obtain Input singleton, didnt initialize");
         }
-        
+
         Variant grav = p_settings->get_setting("physics/3d/default_gravity");
         if (grav.get_type() == Variant::INT || grav.get_type() == Variant::FLOAT)
         {
@@ -76,6 +77,13 @@ bool GD3Dtopdown::_initialize()
             gravity = 9.8f;
             WARN_PRINT("Could not obtain value for gravity from project settings, defaulting to 9.8");
         }
+        camera = Object::cast_to<Camera3D>(get_node<Node>(camera_node_path));
+        if (camera == nullptr)
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not obtain reference to camera didnt initialize");
+        }
+       
         initialized = true;
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
     }
@@ -87,6 +95,7 @@ void GD3Dtopdown::_uninitialize()
     {
         p_settings = nullptr;
         input = nullptr;
+        camera = nullptr;
         initialized = false;
     }
     return;
@@ -130,14 +139,14 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
     if (m.is_valid())
     {
         Vector2 motion = m->get_relative();
-        rotate(Vector3(0, 1, 0), -Math::deg2rad(motion.x) * mouse_sensitivity);
+        Vector3 rot = Vector3(0,Math::deg2rad(motion.x) * mouse_sensitivity,0);
+        camera->set_rotation(camera->get_rotation() + rot);
     }
     return;
 }
 
 void GD3Dtopdown::_physics_process(double delta)
 {
-
 #if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
     WARN_PRINT_ONCE("Physics process called");
 }
@@ -145,7 +154,6 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 {
     WARN_PRINT_ONCE("Physics handle process called");
 #endif
-
     Vector3 vel = get_velocity();
 
     bool floored = is_on_floor();
@@ -203,12 +211,11 @@ void GD3Dtopdown::set_lookat_position(const Vector3& pos)
 {
     lookat_position = pos;
 }
-void GD3Dtopdown::set_camera_transform(const Transform3D& transform)
+void GD3Dtopdown::set_camera_node_path(const NodePath& path)
 {
-    //ERR_FAIL_MSG("Couldn't obtain CameraNode3D");
-
-    camera_transform = transform;
+   camera_node_path = path;
 }
+
 float GD3Dtopdown::get_mouse_sensitivity() const
 {
     return mouse_sensitivity;
@@ -225,7 +232,7 @@ Vector3 GD3Dtopdown::get_lookat_position() const
 {
     return lookat_position;
 }
-Transform3D GD3Dtopdown::get_camera_transform() const
+NodePath GD3Dtopdown::get_camera_node_path() const
 {
-    return camera_transform;
+    return camera_node_path;
 }

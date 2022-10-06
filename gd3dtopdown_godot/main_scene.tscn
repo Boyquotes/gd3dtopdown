@@ -60,5 +60,9 @@ size = Vector3(1.65004, 2.90576, 2.10224)
 environment = SubResource("Environment_14mf4")
 
 [node name="Gd3Dtopdown" parent="." instance=ExtResource("1_744nn")]
+camera_node_path = NodePath("../Camera3d")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.49978, 0)
 velocity = Vector3(0, 0, 0)
+
+[node name="Camera3d" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.24536, 8.79923)
