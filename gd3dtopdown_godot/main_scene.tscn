@@ -56,7 +56,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.94784, -3.34691)
 operation = 2
 size = Vector3(1.65004, 2.90576, 2.10224)
 
-[node name="Gd3Dtopdown" parent="." instance=ExtResource("1_744nn")]
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_14mf4")
+
+[node name="Gd3Dtopdown" parent="." instance=ExtResource("1_744nn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.49978, 0)
+velocity = Vector3(0, 0, 0)

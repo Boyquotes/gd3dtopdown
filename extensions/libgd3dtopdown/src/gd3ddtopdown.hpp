@@ -70,8 +70,9 @@ public:
     //Vector3 move_player_with_camera_direction(const Vector2& dir);
 
     void _ready() override;
-
+    void _ready_handle();
     void _physics_process(double delta) override;
+    void _physics_process_handle(double delta);
    
    // void _input(Variant p_event);
     void _input(const Ref<InputEvent>& p_event) override;

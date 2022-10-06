@@ -14,8 +14,7 @@ material = SubResource("StandardMaterial3D_3iy6x")
 size = Vector3(0.1, 0.1, 2)
 
 [node name="Gd3Dtopdown" type="GD3Dtopdown"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.36692, 0)
-velocity = Vector3(0, -761.284, 0)
+velocity = Vector3(0, -981.453, 0)
 script = ExtResource("1_xkpta")
 
 [node name="CollisionShape3d" type="CollisionShape3D" parent="."]
