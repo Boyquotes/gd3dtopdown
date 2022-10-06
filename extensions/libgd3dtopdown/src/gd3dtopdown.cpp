@@ -21,10 +21,11 @@ GD3Dtopdown::~GD3Dtopdown()
 
 void GD3Dtopdown::_bind_methods()
 {
+#ifdef DEBUG_ENABLED
     ClassDB::bind_method(D_METHOD("_ready_handle"), &GD3Dtopdown::_ready_handle);
     ClassDB::bind_method(D_METHOD("_input_handle"), &GD3Dtopdown::_input_handle);
     ClassDB::bind_method(D_METHOD("_physics_process_handle"), &GD3Dtopdown::_physics_process_handle);
-
+#endif
 
     ClassDB::bind_method(D_METHOD("get_mouse_sensitivity"), &GD3Dtopdown::get_mouse_sensitivity);
     ClassDB::bind_method(D_METHOD("set_mouse_sensitivity", "mouse_sensitivity"), &GD3Dtopdown::set_mouse_sensitivity);
@@ -76,7 +77,7 @@ bool GD3Dtopdown::_initialize()
             WARN_PRINT("Could not obtain value for gravity from project settings, defaulting to 9.8");
         }
         initialized = true;
-        WARN_PRINT("Initialized GD3D with gravity: " + String::num_real(gravity));
+        WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
     }
     return initialized;
 }
@@ -96,21 +97,32 @@ bool GD3Dtopdown::_is_initialized() const
 }
 
 /*Overriden functions _ready, _inputand _physics_process seem to be called
-on object instantiation in the editor but are not called during the game (Tested in debug)
+on object instantiation in the editor but are not called during the game (Tested in debug and release,
+will keep the preprocessor directives in case im missing something but if you intend to use it remove them as godot wont find the functions when exported if not)
 this makes getting pointers to singletos or executing code impossible from them
 in order to account for this, The functions are defined as {func}_handle and called from gdscript
 see gd3dtopdown_project/gd3dtopdown_godot/scripts/gd3dtopdown.gd
 */
-void GD3Dtopdown::_ready() {}
+void GD3Dtopdown::_ready()
+{
+#ifdef DEBUG_ENABLED
+}
 void GD3Dtopdown::_ready_handle()
 {
-    _initialize();
     WARN_PRINT_ONCE("Ready function executed");
+#endif
+    _initialize();
+   
 }
 
-void GD3Dtopdown::_input(const Ref<InputEvent>& p_event) {}
+void GD3Dtopdown::_input(const Ref<InputEvent>& p_event)
+{
+#ifdef DEBUG_ENABLED
+}
 void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 {
+    WARN_PRINT_ONCE("Input function executed");
+#endif
     //Temporary workaround for handling input events
 
     Ref<InputEventMouseMotion> m = p_event;
@@ -122,11 +134,15 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
     return;
 }
 
-void GD3Dtopdown::_physics_process(double delta) {}
+void GD3Dtopdown::_physics_process(double delta)
+{
+#ifdef DEBUG_ENABLED
+}
 void GD3Dtopdown::_physics_process_handle(double delta)
 {
-    
     WARN_PRINT_ONCE("Physics process handle running");
+#endif
+
     Vector3 vel = get_velocity();
 
     bool floored = is_on_floor();

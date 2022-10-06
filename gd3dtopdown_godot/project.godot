@@ -15,6 +15,10 @@ run/main_scene="res://main_scene.tscn"
 config/features=PackedStringArray("4.0", "Forward Plus")
 config/icon="res://icon.svg"
 
+[dotnet]
+
+project/assembly_name="gd3Dtopdown_godot"
+
 [input]
 
 move_forward={
