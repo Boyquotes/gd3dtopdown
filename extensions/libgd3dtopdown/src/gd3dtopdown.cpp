@@ -21,7 +21,7 @@ GD3Dtopdown::~GD3Dtopdown()
 
 void GD3Dtopdown::_bind_methods()
 {
-#ifdef DEBUG_ENABLED
+#if  defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
     ClassDB::bind_method(D_METHOD("_ready_handle"), &GD3Dtopdown::_ready_handle);
     ClassDB::bind_method(D_METHOD("_input_handle"), &GD3Dtopdown::_input_handle);
     ClassDB::bind_method(D_METHOD("_physics_process_handle"), &GD3Dtopdown::_physics_process_handle);
@@ -105,26 +105,27 @@ see gd3dtopdown_project/gd3dtopdown_godot/scripts/gd3dtopdown.gd
 */
 void GD3Dtopdown::_ready()
 {
-#ifdef DEBUG_ENABLED
+#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+    WARN_PRINT_ONCE("Ready function called");
 }
 void GD3Dtopdown::_ready_handle()
 {
-    WARN_PRINT_ONCE("Ready function executed");
+    WARN_PRINT_ONCE("Ready handle function called");
 #endif
     _initialize();
-   
 }
 
 void GD3Dtopdown::_input(const Ref<InputEvent>& p_event)
 {
-#ifdef DEBUG_ENABLED
+    
+#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+    WARN_PRINT_ONCE("Input function called");
 }
 void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 {
-    WARN_PRINT_ONCE("Input function executed");
+    WARN_PRINT_ONCE("Input handle function called");
 #endif
-    //Temporary workaround for handling input events
-
+   
     Ref<InputEventMouseMotion> m = p_event;
     if (m.is_valid())
     {
@@ -136,11 +137,13 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 
 void GD3Dtopdown::_physics_process(double delta)
 {
-#ifdef DEBUG_ENABLED
+
+#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+    WARN_PRINT_ONCE("Physics process called");
 }
 void GD3Dtopdown::_physics_process_handle(double delta)
 {
-    WARN_PRINT_ONCE("Physics process handle running");
+    WARN_PRINT_ONCE("Physics handle process called");
 #endif
 
     Vector3 vel = get_velocity();
@@ -176,15 +179,13 @@ void GD3Dtopdown::_physics_process_handle(double delta)
         vel.x = direction.x * speed;
         vel.z = direction.z * speed;
     }
-
     set_velocity(vel);
 
     move_and_slide();
-
 }
 
 /*
-Getters and setters
+Setters and getters
 */
 void GD3Dtopdown::set_mouse_sensitivity(const float sen)
 {

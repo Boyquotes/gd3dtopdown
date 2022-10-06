@@ -74,7 +74,7 @@ public:
     
     void _physics_process(double delta) override;
 
-#ifdef DEBUG_ENABLED
+#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
     void _ready_handle();
     void _physics_process_handle(double delta);
     void _input_handle(const Ref<InputEvent>& p_event);
