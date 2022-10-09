@@ -13,6 +13,7 @@ GD3Dtopdown::GD3Dtopdown()
     if(!input_map->has_action("move_right"))   input_map->add_action("move_right");
     if(!input_map->has_action("move_forward")) input_map->add_action("move_forward");
     if(!input_map->has_action("move_back"))    input_map->add_action("move_back");
+    if(!input_map->has_action("aim"))    input_map->add_action("aim");
 }
 GD3Dtopdown::~GD3Dtopdown()
 {
@@ -21,7 +22,7 @@ GD3Dtopdown::~GD3Dtopdown()
 
 void GD3Dtopdown::_bind_methods()
 {
-#if  defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+#if  defined(DEBUG_ENABLED) 
     ClassDB::bind_method(D_METHOD("_ready_handle"), &GD3Dtopdown::_ready_handle);
     ClassDB::bind_method(D_METHOD("_input_handle"), &GD3Dtopdown::_input_handle);
     ClassDB::bind_method(D_METHOD("_physics_process_handle"), &GD3Dtopdown::_physics_process_handle);
@@ -44,8 +45,20 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_lookat_position", "lookat_position"), &GD3Dtopdown::set_lookat_position);
     
     ClassDB::bind_method(D_METHOD("get_camera_node_path"), &GD3Dtopdown::get_camera_node_path);
-    ClassDB::bind_method(D_METHOD("set_camera_node_path", "camera_node"), &GD3Dtopdown::set_camera_node_path);
+    ClassDB::bind_method(D_METHOD("set_camera_node_path", "camera_node_path"), &GD3Dtopdown::set_camera_node_path);
     ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "camera_node_path"), "set_camera_node_path", "get_camera_node_path");
+
+    ClassDB::bind_method(D_METHOD("get_camera_boon"), &GD3Dtopdown::get_camera_boon);
+    ClassDB::bind_method(D_METHOD("set_camera_boon", "camera_boon"), &GD3Dtopdown::set_camera_boon);
+    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "camera_boon"), "set_camera_boon", "get_camera_boon");
+
+    ClassDB::bind_method(D_METHOD("get_camera_predict"), &GD3Dtopdown::get_camera_predict);
+    ClassDB::bind_method(D_METHOD("set_camera_predict", "camera_predict"), &GD3Dtopdown::set_camera_predict);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "camera_predict"), "set_camera_predict", "get_camera_predict");
+
+    ClassDB::bind_method(D_METHOD("get_camera_predict_speed"), &GD3Dtopdown::get_camera_predict_speed);
+    ClassDB::bind_method(D_METHOD("set_camera_predict_speed", "camera_predict_speed"), &GD3Dtopdown::set_camera_predict_speed);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "camera_predict_speed"), "set_camera_predict_speed", "get_camera_predict_speed");
 }
 
 //Initializer functions, get pointers to Input and project settings. Set gravity value
@@ -55,6 +68,7 @@ bool GD3Dtopdown::_initialize()
     {
         p_settings = ProjectSettings::get_singleton();
         input = Input::get_singleton();
+        ph_server = PhysicsServer3D::get_singleton();
 
         if (p_settings == nullptr)
         {
@@ -66,7 +80,17 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not obtain Input singleton, didnt initialize");
         }
-
+        if (ph_server== nullptr)
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not obtain Physics Server singleton, didnt initialize");
+        }
+        w3d = get_world_3d();
+        if (!w3d.is_valid()) 
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not obtain World 3d reference, didnt initialize");
+        }
         Variant grav = p_settings->get_setting("physics/3d/default_gravity");
         if (grav.get_type() == Variant::INT || grav.get_type() == Variant::FLOAT)
         {
@@ -83,9 +107,11 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not obtain reference to camera didnt initialize");
         }
-       
         initialized = true;
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
+        lookat_position = get_position() + Vector3(1, 0, 1);
+
+        // Here set up layers for the raycamera_rp
     }
     return initialized;
 }
@@ -114,7 +140,7 @@ see gd3dtopdown_project/gd3dtopdown_godot/scripts/gd3dtopdown.gd
 */
 void GD3Dtopdown::_ready()
 {
-#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+#if defined(DEBUG_ENABLED)
     WARN_PRINT_ONCE("Ready function called");
 }
 void GD3Dtopdown::_ready_handle()
@@ -127,7 +153,7 @@ void GD3Dtopdown::_ready_handle()
 void GD3Dtopdown::_input(const Ref<InputEvent>& p_event)
 {
     
-#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+#if defined(DEBUG_ENABLED)
     WARN_PRINT_ONCE("Input function called");
 }
 void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
@@ -139,15 +165,16 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
     if (m.is_valid())
     {
         Vector2 motion = m->get_relative();
-        Vector3 rot = Vector3(0,Math::deg2rad(motion.x) * mouse_sensitivity,0);
-        camera->set_rotation(camera->get_rotation() + rot);
+        camera_boon.rotate( Vector3(0,1,0), Math::deg_to_rad(motion.x) * mouse_sensitivity);
+        camera->set_position(camera_follow_position + camera_boon);
+        camera->look_at(camera_follow_position);
     }
     return;
 }
 
 void GD3Dtopdown::_physics_process(double delta)
 {
-#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+#if defined(DEBUG_ENABLED) 
     WARN_PRINT_ONCE("Physics process called");
 }
 void GD3Dtopdown::_physics_process_handle(double delta)
@@ -172,13 +199,16 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     {
         speed *= 2.0f;
     }
+ 
 
     Vector2 input_dir = input->get_vector("move_left", "move_right", "move_forward", "move_back");
 
-    Vector3 direction = (get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
+    Vector3 direction = (camera->get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
 
+    
     if (direction.is_zero_approx())
     {
+        
         vel.x = Math::move_toward(vel.x, 0, speed);
         vel.z = Math::move_toward(vel.z, 0, speed);
     }
@@ -186,10 +216,39 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     {
         vel.x = direction.x * speed;
         vel.z = direction.z * speed;
+        lookat_position = get_position();
+        lookat_position.x += direction.x;
+        lookat_position.z += direction.z;
+        
     }
-    set_velocity(vel);
 
+    if (input->is_action_pressed("aim"))
+    {
+        Vector2 mouse_pos = get_viewport()->get_mouse_position();
+
+        Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
+                                            camera->project_ray_origin(mouse_pos), 
+                                            camera->project_ray_normal(mouse_pos) * 1000);
+        godot::Dictionary ray_dict = ph_server->space_get_direct_state(w3d->get_space())->intersect_ray(ray);
+     
+#if defined(DEBUG_ENABLED) 
+        WARN_PRINT_ONCE(ray_dict.keys()[0]);
+#endif
+        /*
+        Here get ray position
+        lookat_position = get_position();
+        lookat_position.x = pos.x;
+        lookat_position.z = pos.z;
+        */
+    }
+    
+    set_velocity(vel);
+    
     move_and_slide();
+    look_at(lookat_position);
+    camera_follow_position = camera_follow_position.lerp(camera_predict * direction + get_position(), camera_predict_speed * delta);
+    camera->set_position(camera_follow_position + camera_boon);
+    camera->look_at(camera_follow_position);
 }
 
 /*
@@ -215,6 +274,19 @@ void GD3Dtopdown::set_camera_node_path(const NodePath& path)
 {
    camera_node_path = path;
 }
+void GD3Dtopdown::set_camera_boon(const Vector3& pos)
+{
+    camera_boon = pos;
+}
+void GD3Dtopdown::set_camera_predict(const float pre)
+{
+    camera_predict = pre;
+}
+void GD3Dtopdown::set_camera_predict_speed(const float cps)
+{
+    camera_predict_speed = cps;
+}
+
 
 float GD3Dtopdown::get_mouse_sensitivity() const
 {
@@ -236,3 +308,17 @@ NodePath GD3Dtopdown::get_camera_node_path() const
 {
     return camera_node_path;
 }
+Vector3 GD3Dtopdown::get_camera_boon() const
+{
+    return camera_boon;
+}
+float GD3Dtopdown::get_camera_predict() const
+{
+    return camera_predict;
+}
+
+float GD3Dtopdown::get_camera_predict_speed() const
+{
+    return camera_predict_speed;
+}
+

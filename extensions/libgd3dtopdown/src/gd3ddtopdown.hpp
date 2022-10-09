@@ -15,7 +15,14 @@
 
 #include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/remote_transform3d.hpp>
+#include <godot_cpp/classes/ray_cast3d.hpp>
 
+#include <godot_cpp/classes/viewport.hpp>
+
+#include <godot_cpp/classes/world3d.hpp>
+#include <godot_cpp/classes/physics_server3d.hpp>
+#include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
+#include <godot_cpp/classes/physics_direct_space_state3d.hpp>
 
 
 using namespace godot;
@@ -33,6 +40,8 @@ private:
     
     Input* input;
     ProjectSettings* p_settings;
+    PhysicsServer3D* ph_server;
+
     float gravity = 9.8f;
 
     float mouse_sensitivity = 0.2f;
@@ -40,11 +49,15 @@ private:
     float player_jump_velocity = 4.5f;
 
     Vector3 lookat_position;
-
     NodePath camera_node_path;
     Camera3D* camera;
-    
+    Vector3 camera_boon = Vector3(0, 10, 10);
 
+    Ref<World3D> w3d;
+    
+    float camera_predict = 0;
+    float camera_predict_speed = 15;
+    Vector3 camera_follow_position;
 public:
 
     virtual bool _is_initialized()  const ;
@@ -55,7 +68,7 @@ public:
     virtual void _input(const Ref<InputEvent>& p_event) override;
     virtual void _physics_process(double delta) override;
 
-#if defined(DEBUG_ENABLED) || defined(TEST_FUNCTIONS)
+#if defined(DEBUG_ENABLED)
     void _ready_handle();
     void _physics_process_handle(double delta);
     void _input_handle(const Ref<InputEvent>& p_event);
@@ -66,11 +79,17 @@ public:
     void set_player_jump_velocity(const float vel);
     void set_lookat_position(const Vector3& pos);
     void set_camera_node_path(const NodePath& path);
+    void set_camera_boon(const Vector3& pos);
+    void set_camera_predict(const float pre);
+    void set_camera_predict_speed(const float cps);
 
     float get_mouse_sensitivity() const;
     float get_player_speed() const;
     float get_player_jump_velocity() const;
     Vector3 get_lookat_position() const;
     NodePath get_camera_node_path() const;
+    Vector3 get_camera_boon() const;
+    float get_camera_predict() const;
+    float get_camera_predict_speed() const;
    
 };
