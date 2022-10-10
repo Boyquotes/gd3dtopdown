@@ -36,28 +36,38 @@ protected:
     static void _bind_methods();
     
 private:
-    bool initialized;
-    
+   
+    //Singletons
     Input* input;
     ProjectSettings* p_settings;
     PhysicsServer3D* ph_server;
 
+    bool initialized;
+
     float gravity = 9.8f;
 
     float mouse_sensitivity = 0.2f;
-    float player_speed = 5.0f;
+    float walk_speed = 5.0f;
+    float sprint_speed = 10.0f;
     float player_jump_velocity = 4.5f;
 
+//Aiming and camera properties
+    bool is_aiming;
     Vector3 lookat_position;
     NodePath camera_node_path;
     Camera3D* camera;
     Vector3 camera_boon = Vector3(0, 10, 10);
+
+    Node3D* aimed_node;
+    Object* old_aim_obj;
+
 
     Ref<World3D> w3d;
     
     float camera_predict = 0;
     float camera_predict_speed = 15;
     Vector3 camera_follow_position;
+
 public:
 
     virtual bool _is_initialized()  const ;
@@ -74,8 +84,13 @@ public:
     void _input_handle(const Ref<InputEvent>& p_event);
 #endif
    
+    //Other functions
+    void handle_collider(Object* obj);
+
+    //Getters and setters
     void set_mouse_sensitivity(const float sen);
-    void set_player_speed(const float spd);
+    void set_walk_speed(const float spd);
+    void set_sprint_speed(const float spd);
     void set_player_jump_velocity(const float vel);
     void set_lookat_position(const Vector3& pos);
     void set_camera_node_path(const NodePath& path);
@@ -84,7 +99,8 @@ public:
     void set_camera_predict_speed(const float cps);
 
     float get_mouse_sensitivity() const;
-    float get_player_speed() const;
+    float get_walk_speed() const;
+    float get_sprint_speed() const;
     float get_player_jump_velocity() const;
     Vector3 get_lookat_position() const;
     NodePath get_camera_node_path() const;
@@ -92,4 +108,5 @@ public:
     float get_camera_predict() const;
     float get_camera_predict_speed() const;
    
+    
 };

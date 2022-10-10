@@ -32,9 +32,13 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_mouse_sensitivity", "mouse_sensitivity"), &GD3Dtopdown::set_mouse_sensitivity);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "mouse_sensitivity"), "set_mouse_sensitivity", "get_mouse_sensitivity");
 
-    ClassDB::bind_method(D_METHOD("get_player_speed"), &GD3Dtopdown::get_player_speed);
-    ClassDB::bind_method(D_METHOD("set_player_speed", "player_speed"), &GD3Dtopdown::set_player_speed);
-    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "player_speed"), "set_player_speed", "get_player_speed");
+    ClassDB::bind_method(D_METHOD("get_walk_speed"), &GD3Dtopdown::get_walk_speed);
+    ClassDB::bind_method(D_METHOD("set_walk_speed", "walk_speed"), &GD3Dtopdown::set_walk_speed);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "walk_speed"), "set_walk_speed", "get_walk_speed");
+
+    ClassDB::bind_method(D_METHOD("get_sprint_speed"), &GD3Dtopdown::get_sprint_speed);
+    ClassDB::bind_method(D_METHOD("set_sprint_speed", "sprint_speed"), &GD3Dtopdown::set_sprint_speed);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "sprint_speed"), "set_sprint_speed", "get_sprint_speed");
 
     ClassDB::bind_method(D_METHOD("get_player_jump_velocity"), &GD3Dtopdown::get_player_jump_velocity);
     ClassDB::bind_method(D_METHOD("set_player_jump_velocity", "player_jump_velocity"), &GD3Dtopdown::set_player_jump_velocity);
@@ -109,9 +113,7 @@ bool GD3Dtopdown::_initialize()
         }
         initialized = true;
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
-        lookat_position = get_position() + Vector3(1, 0, 1);
 
-        // Here set up layers for the raycamera_rp
     }
     return initialized;
 }
@@ -122,6 +124,7 @@ void GD3Dtopdown::_uninitialize()
         p_settings = nullptr;
         input = nullptr;
         camera = nullptr;
+
         initialized = false;
     }
     return;
@@ -162,7 +165,7 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 #endif
    
     Ref<InputEventMouseMotion> m = p_event;
-    if (m.is_valid())
+    if (m.is_valid() && !is_aiming)
     {
         Vector2 motion = m->get_relative();
         camera_boon.rotate( Vector3(0,1,0), Math::deg_to_rad(motion.x) * mouse_sensitivity);
@@ -181,86 +184,113 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 {
     WARN_PRINT_ONCE("Physics handle process called");
 #endif
+    //Inputs and environment
+    is_aiming = input->is_action_pressed("aim");
+    Vector2 input_dir = input->get_vector("move_left", "move_right", "move_forward", "move_back");
+    bool is_jumping = input->is_action_pressed("jump");
+    bool is_sprinting = input->is_action_pressed("sprint");
     Vector3 vel = get_velocity();
-
     bool floored = is_on_floor();
-    float speed = player_speed;
+    float speed = walk_speed;
+
+    //Logic with inputs
     if (!floored)
     {
         vel.y -= gravity * delta;
     }
 
-    if (floored && input->is_action_pressed("jump"))
+    if (floored && is_jumping )
     {
         vel.y = player_jump_velocity;
     }
 
-    if (input->is_action_pressed("sprint"))
+    if (is_sprinting && floored)
     {
-        speed *= 2.0f;
+        speed = sprint_speed;
     }
- 
-
-    Vector2 input_dir = input->get_vector("move_left", "move_right", "move_forward", "move_back");
 
     Vector3 direction = (camera->get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
-
     
+    lookat_position = get_position();
     if (direction.is_zero_approx())
     {
-        
         vel.x = Math::move_toward(vel.x, 0, speed);
         vel.z = Math::move_toward(vel.z, 0, speed);
+       
+        Vector3 front_pos = get_global_transform().get_basis().get_column(2);
+        lookat_position.x -=  front_pos.x;
+        lookat_position.z -=  front_pos.z;
     }
     else
     {
         vel.x = direction.x * speed;
         vel.z = direction.z * speed;
-        lookat_position = get_position();
         lookat_position.x += direction.x;
         lookat_position.z += direction.z;
-        
     }
 
-    if (input->is_action_pressed("aim"))
+    if (is_aiming)
     {
         Vector2 mouse_pos = get_viewport()->get_mouse_position();
 
         Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
                                             camera->project_ray_origin(mouse_pos), 
                                             camera->project_ray_normal(mouse_pos) * 1000);
-        godot::Dictionary ray_dict = ph_server->space_get_direct_state(w3d->get_space())->intersect_ray(ray);
-     
-#if defined(DEBUG_ENABLED) 
-        WARN_PRINT_ONCE(ray_dict.keys()[0]);
-#endif
-        /*
-        Here get ray position
-        lookat_position = get_position();
-        lookat_position.x = pos.x;
-        lookat_position.z = pos.z;
+
+        Dictionary ray_dict = ph_server->space_get_direct_state(
+                                            w3d->get_space())->intersect_ray(ray);
+
+        if(ray_dict.has("position"))
+        {
+            Vector3 pos = ray_dict["position"];
+            lookat_position.x = pos.x;
+            lookat_position.z = pos.z;
+        }
+        if (ray_dict.has("collider"))
+        {
+            Object* aim_obj = ray_dict["collider"];
+            handle_collider(aim_obj);
+        }
+        /* No use yet but useful reference
+        if(ray_dict.has("normal"))Vector3 norm = ray_dict["normal"];
+        if (ray_dict.has("collider_id")) int obj_id = ray_dict["collider_id"];
+        if (ray_dict.has("shape")) int shape = ray_dict["shape"];
+        if (ray_dict.has("rid"))RID rid = ray_dict["rid"];
         */
+
     }
     
-    set_velocity(vel);
+    camera_follow_position = camera_follow_position.lerp(camera_predict * direction + get_position(), camera_predict_speed * delta);
     
+    //Setting the resulting logic to the character and camera nodes
+    set_velocity(vel);
     move_and_slide();
     look_at(lookat_position);
-    camera_follow_position = camera_follow_position.lerp(camera_predict * direction + get_position(), camera_predict_speed * delta);
+    
     camera->set_position(camera_follow_position + camera_boon);
     camera->look_at(camera_follow_position);
 }
 
-/*
-Setters and getters
-*/
+//Other functions
+void GD3Dtopdown::handle_collider(Object* obj)
+{
+    if (obj == old_aim_obj) return;
+    old_aim_obj = obj;
+    WARN_PRINT(obj->get_class());
+}
+
+//Setters and getters
 void GD3Dtopdown::set_mouse_sensitivity(const float sen)
 {
     mouse_sensitivity = sen;
 }
-void GD3Dtopdown::set_player_speed(const float spd)
+void GD3Dtopdown::set_walk_speed(const float spd)
 {
-    player_speed = spd;
+    walk_speed = spd;
+}
+void GD3Dtopdown::set_sprint_speed(const float spd)
+{
+    sprint_speed = spd;
 }
 void GD3Dtopdown::set_player_jump_velocity(const float vel)
 {
@@ -292,9 +322,13 @@ float GD3Dtopdown::get_mouse_sensitivity() const
 {
     return mouse_sensitivity;
 }
-float GD3Dtopdown::get_player_speed() const
+float GD3Dtopdown::get_walk_speed() const
 {
-    return player_speed;
+    return walk_speed;
+}
+float GD3Dtopdown::get_sprint_speed() const
+{
+    return sprint_speed;
 }
 float GD3Dtopdown::get_player_jump_velocity() const
 {
