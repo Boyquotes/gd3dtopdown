@@ -46,11 +46,15 @@ void GD3Dtopdown::_bind_methods()
     
 
     ClassDB::bind_method(D_METHOD("get_lookat_position"), &GD3Dtopdown::get_lookat_position);
-    ClassDB::bind_method(D_METHOD("set_lookat_position", "lookat_position"), &GD3Dtopdown::set_lookat_position);
+    ClassDB::bind_method(D_METHOD("get_aim_node"), &GD3Dtopdown::get_aim_node);
     
     ClassDB::bind_method(D_METHOD("get_camera_node_path"), &GD3Dtopdown::get_camera_node_path);
     ClassDB::bind_method(D_METHOD("set_camera_node_path", "camera_node_path"), &GD3Dtopdown::set_camera_node_path);
     ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "camera_node_path"), "set_camera_node_path", "get_camera_node_path");
+
+    ClassDB::bind_method(D_METHOD("get_invert_camera_movement"), &GD3Dtopdown::get_invert_camera_movement);
+    ClassDB::bind_method(D_METHOD("set_invert_camera_movement", "invert_camera_movement"), &GD3Dtopdown::set_invert_camera_movement);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "invert_camera_movement"), "set_invert_camera_movement", "get_invert_camera_movement");
 
     ClassDB::bind_method(D_METHOD("get_camera_boon"), &GD3Dtopdown::get_camera_boon);
     ClassDB::bind_method(D_METHOD("set_camera_boon", "camera_boon"), &GD3Dtopdown::set_camera_boon);
@@ -111,6 +115,9 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not obtain reference to camera didnt initialize");
         }
+        rayexcludes.clear();
+        rayexcludes.push_back(get_rid());
+        rayexcludes.push_back(camera->get_camera_rid());
         initialized = true;
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
 
@@ -121,10 +128,14 @@ void GD3Dtopdown::_uninitialize()
 {
     if (initialized)
     {
+        rayexcludes.clear();
+        old_aim_node = nullptr;
+        old_roof_node = nullptr;
+        old_intersect_node = nullptr;
         p_settings = nullptr;
         input = nullptr;
         camera = nullptr;
-
+        ph_server = nullptr;
         initialized = false;
     }
     return;
@@ -140,9 +151,11 @@ will keep the preprocessor directives in case im missing something but if you in
 this makes getting pointers to singletos or executing code impossible from them
 in order to account for this, The functions are defined as {func}_handle and called from gdscript
 see gd3dtopdown_project/gd3dtopdown_godot/scripts/gd3dtopdown.gd
+Calling Engine::get_singleton()->is_editor_hint() does not solve the issue as the functions are not ticking inside the Run
 */
 void GD3Dtopdown::_ready()
 {
+    if (Engine::get_singleton()->is_editor_hint()) return;
 #if defined(DEBUG_ENABLED)
     WARN_PRINT_ONCE("Ready function called");
 }
@@ -155,7 +168,7 @@ void GD3Dtopdown::_ready_handle()
 
 void GD3Dtopdown::_input(const Ref<InputEvent>& p_event)
 {
-    
+    if (Engine::get_singleton()->is_editor_hint()) return;
 #if defined(DEBUG_ENABLED)
     WARN_PRINT_ONCE("Input function called");
 }
@@ -163,12 +176,15 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 {
     WARN_PRINT_ONCE("Input handle function called");
 #endif
-   
+
+    if (!initialized) return;
     Ref<InputEventMouseMotion> m = p_event;
     if (m.is_valid() && !is_aiming)
     {
         Vector2 motion = m->get_relative();
-        camera_boon.rotate( Vector3(0,1,0), Math::deg_to_rad(motion.x) * mouse_sensitivity);
+        float xmov = Math::deg_to_rad(motion.x);
+        if (invert_camera_movement) xmov *= -1;
+        camera_boon.rotate( Vector3(0,1,0), xmov * mouse_sensitivity);
         camera->set_position(camera_follow_position + camera_boon);
         camera->look_at(camera_follow_position);
     }
@@ -177,6 +193,7 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 
 void GD3Dtopdown::_physics_process(double delta)
 {
+    if (Engine::get_singleton()->is_editor_hint()) return;
 #if defined(DEBUG_ENABLED) 
     WARN_PRINT_ONCE("Physics process called");
 }
@@ -184,6 +201,8 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 {
     WARN_PRINT_ONCE("Physics handle process called");
 #endif
+
+    if (!initialized) return;
     //Inputs and environment
     is_aiming = input->is_action_pressed("aim");
     Vector2 input_dir = input->get_vector("move_left", "move_right", "move_forward", "move_back");
@@ -211,22 +230,22 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 
     Vector3 direction = (camera->get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
     
-    lookat_position = get_position();
+    Vector3 lookat_pos = get_position();
     if (direction.is_zero_approx())
     {
         vel.x = Math::move_toward(vel.x, 0, speed);
         vel.z = Math::move_toward(vel.z, 0, speed);
        
         Vector3 front_pos = get_global_transform().get_basis().get_column(2);
-        lookat_position.x -=  front_pos.x;
-        lookat_position.z -=  front_pos.z;
+        lookat_pos.x -=  front_pos.x;
+        lookat_pos.z -=  front_pos.z;
     }
     else
     {
         vel.x = direction.x * speed;
         vel.z = direction.z * speed;
-        lookat_position.x += direction.x;
-        lookat_position.z += direction.z;
+        lookat_pos.x += direction.x;
+        lookat_pos.z += direction.z;
     }
 
     if (is_aiming)
@@ -243,21 +262,22 @@ void GD3Dtopdown::_physics_process_handle(double delta)
         if(ray_dict.has("position"))
         {
             Vector3 pos = ray_dict["position"];
-            lookat_position.x = pos.x;
-            lookat_position.z = pos.z;
+            lookat_pos.x = pos.x;
+            lookat_pos.z = pos.z;
         }
         if (ray_dict.has("collider"))
         {
-            Object* aim_obj = ray_dict["collider"];
-            handle_collider(aim_obj);
+            Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
+            handle_aim_node(nd);
         }
-        /* No use yet but useful reference
-        if(ray_dict.has("normal"))Vector3 norm = ray_dict["normal"];
-        if (ray_dict.has("collider_id")) int obj_id = ray_dict["collider_id"];
-        if (ray_dict.has("shape")) int shape = ray_dict["shape"];
-        if (ray_dict.has("rid"))RID rid = ray_dict["rid"];
-        */
-
+    }
+    else
+    {
+        if(old_aim_node != nullptr)
+        {
+            //Deselect function here
+            old_aim_node = nullptr;
+        }
     }
     
     camera_follow_position = camera_follow_position.lerp(camera_predict * direction + get_position(), camera_predict_speed * delta);
@@ -265,18 +285,74 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     //Setting the resulting logic to the character and camera nodes
     set_velocity(vel);
     move_and_slide();
+    lookat_position = lookat_pos;
     look_at(lookat_position);
     
     camera->set_position(camera_follow_position + camera_boon);
     camera->look_at(camera_follow_position);
 }
-
+//Intersects and walls separate layers (soon)
 //Other functions
-void GD3Dtopdown::handle_collider(Object* obj)
+void GD3Dtopdown::handle_aim_node(Node3D* nd)
 {
-    if (obj == old_aim_obj) return;
-    old_aim_obj = obj;
-    WARN_PRINT(obj->get_class());
+    if (old_aim_node == nd) return;
+    if (old_aim_node != nullptr)
+    {
+        //DeHighlight function old_aim_node_->
+    }
+    old_aim_node = nd;
+
+    if( nd != nullptr)
+    {
+        //Highlight_function
+    }
+}
+void GD3Dtopdown::check_for_roof()
+{
+    Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
+        get_position(),
+        get_position() + get_global_transform().get_basis().get_column(2) * 100,
+        4294967295U, rayexcludes);
+
+    Dictionary ray_dict = ph_server->space_get_direct_state(
+        w3d->get_space())->intersect_ray(ray);
+
+    Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
+
+    if (nd == old_roof_node) return;
+    if (old_roof_node != nullptr)
+    {
+        //Visuble roof function old_aim_node_->
+    }
+    old_aim_node = nd;
+    if (nd != nullptr)
+    {
+        //Invisible_roof
+    }
+}
+
+void GD3Dtopdown::check_camera_visibility()
+{
+    Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
+        camera->get_position(),
+        get_position(), 
+        4294967295U, rayexcludes);
+    
+    Dictionary ray_dict = ph_server->space_get_direct_state(
+        w3d->get_space())->intersect_ray(ray);
+
+    Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
+    if (nd == old_intersect_node) return;
+    if (old_intersect_node != nullptr)
+    {
+        //Visb
+    }
+    old_intersect_node = nd;
+    if (nd != nullptr)
+    {
+        //Invisible_roof
+    }
+    return ;
 }
 
 //Setters and getters
@@ -296,10 +372,6 @@ void GD3Dtopdown::set_player_jump_velocity(const float vel)
 {
     player_jump_velocity = vel;
 }
-void GD3Dtopdown::set_lookat_position(const Vector3& pos)
-{
-    lookat_position = pos;
-}
 void GD3Dtopdown::set_camera_node_path(const NodePath& path)
 {
    camera_node_path = path;
@@ -316,7 +388,10 @@ void GD3Dtopdown::set_camera_predict_speed(const float cps)
 {
     camera_predict_speed = cps;
 }
-
+void GD3Dtopdown::set_invert_camera_movement(const bool inv)
+{
+    invert_camera_movement = inv;
+}
 
 float GD3Dtopdown::get_mouse_sensitivity() const
 {
@@ -350,9 +425,16 @@ float GD3Dtopdown::get_camera_predict() const
 {
     return camera_predict;
 }
-
 float GD3Dtopdown::get_camera_predict_speed() const
 {
     return camera_predict_speed;
+}
+bool GD3Dtopdown::get_invert_camera_movement() const 
+{
+    return invert_camera_movement;
+};
+Node3D* GD3Dtopdown::get_aim_node()const
+{
+    return old_aim_node;
 }
 

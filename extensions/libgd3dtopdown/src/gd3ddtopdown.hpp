@@ -14,15 +14,14 @@
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 
 #include <godot_cpp/classes/camera3d.hpp>
-#include <godot_cpp/classes/remote_transform3d.hpp>
-#include <godot_cpp/classes/ray_cast3d.hpp>
-
 #include <godot_cpp/classes/viewport.hpp>
 
 #include <godot_cpp/classes/world3d.hpp>
 #include <godot_cpp/classes/physics_server3d.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/physics_direct_space_state3d.hpp>
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/node.hpp>
 
 
 using namespace godot;
@@ -41,11 +40,11 @@ private:
     Input* input;
     ProjectSettings* p_settings;
     PhysicsServer3D* ph_server;
+    Ref<World3D> w3d;
 
     bool initialized;
 
     float gravity = 9.8f;
-
     float mouse_sensitivity = 0.2f;
     float walk_speed = 5.0f;
     float sprint_speed = 10.0f;
@@ -57,16 +56,16 @@ private:
     NodePath camera_node_path;
     Camera3D* camera;
     Vector3 camera_boon = Vector3(0, 10, 10);
-
-    Node3D* aimed_node;
-    Object* old_aim_obj;
-
-
-    Ref<World3D> w3d;
-    
     float camera_predict = 0;
     float camera_predict_speed = 15;
     Vector3 camera_follow_position;
+    bool invert_camera_movement;
+
+//Environment checks
+    Array rayexcludes = {};
+    Node3D* old_aim_node;
+    Node3D* old_roof_node;
+    Node3D* old_intersect_node;
 
 public:
 
@@ -77,6 +76,7 @@ public:
     virtual void _ready() override;
     virtual void _input(const Ref<InputEvent>& p_event) override;
     virtual void _physics_process(double delta) override;
+   
 
 #if defined(DEBUG_ENABLED)
     void _ready_handle();
@@ -85,18 +85,20 @@ public:
 #endif
    
     //Other functions
-    void handle_collider(Object* obj);
+    void handle_aim_node(Node3D* nd);
+    void check_for_roof() ;
+    void check_camera_visibility() ;
 
     //Getters and setters
     void set_mouse_sensitivity(const float sen);
     void set_walk_speed(const float spd);
     void set_sprint_speed(const float spd);
     void set_player_jump_velocity(const float vel);
-    void set_lookat_position(const Vector3& pos);
     void set_camera_node_path(const NodePath& path);
     void set_camera_boon(const Vector3& pos);
     void set_camera_predict(const float pre);
     void set_camera_predict_speed(const float cps);
+    void set_invert_camera_movement(const bool inv);
 
     float get_mouse_sensitivity() const;
     float get_walk_speed() const;
@@ -107,6 +109,6 @@ public:
     Vector3 get_camera_boon() const;
     float get_camera_predict() const;
     float get_camera_predict_speed() const;
-   
-    
+    bool get_invert_camera_movement() const;
+    Node3D* get_aim_node()const;
 };
