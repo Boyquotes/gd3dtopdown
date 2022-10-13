@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://d4b7fmww6td57"]
+[gd_scene load_steps=12 format=3 uid="uid://d4b7fmww6td57"]
 
 [ext_resource type="PackedScene" uid="uid://bu76lxvtlxjrg" path="res://gd3dtopdown.tscn" id="1_744nn"]
 
@@ -32,7 +32,11 @@ height = 10.0
 [sub_resource type="BoxShape3D" id="BoxShape3D_0obbd"]
 size = Vector3(10, 10, 1)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qlt5j"]
+albedo_color = Color(0.360784, 0.360784, 0.360784, 0.192157)
+
 [sub_resource type="BoxMesh" id="BoxMesh_bb8wi"]
+material = SubResource("StandardMaterial3D_qlt5j")
 size = Vector3(10, 10, 1)
 
 [node name="MainScene" type="Node3D"]
@@ -74,11 +78,11 @@ shape = SubResource("BoxShape3D_0obbd")
 [node name="MeshInstance3d" type="MeshInstance3D" parent="Wall"]
 mesh = SubResource("BoxMesh_bb8wi")
 
-[node name="Roof" type="StaticBody3D" parent="."]
+[node name="Roof" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 7.3881, 7.5654, -7.88441)
-
-[node name="CollisionShape3d" type="CollisionShape3D" parent="Roof"]
-shape = SubResource("BoxShape3D_0obbd")
 
 [node name="MeshInstance3d" type="MeshInstance3D" parent="Roof"]
 mesh = SubResource("BoxMesh_bb8wi")
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="Roof"]
+shape = SubResource("BoxShape3D_0obbd")

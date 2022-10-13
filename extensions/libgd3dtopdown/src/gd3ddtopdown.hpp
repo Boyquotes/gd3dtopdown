@@ -23,6 +23,10 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node.hpp>
 
+#include <godot_cpp/classes/area3d.hpp>
+#include <godot_cpp/classes/collision_shape3d.hpp>
+#include <godot_cpp/classes/shape3d.hpp>
+
 
 using namespace godot;
 
@@ -62,10 +66,17 @@ private:
     bool invert_camera_movement;
 
 //Environment checks
-    Array rayexcludes = {};
+    Array wall_rayexcludes = {};
+    Array roof_rayexcludes = {};
+    Array all_rayexcludes = {};
     Node3D* old_aim_node;
     Node3D* old_roof_node;
     Node3D* old_intersect_node;
+
+    Area3D* roof_collision_area;
+    Area3D* wall_collision_area;
+    Ref<Shape3D> roof_detect_shape;
+    Ref<Shape3D> wall_detect_shape;
 
 public:
 
@@ -89,6 +100,12 @@ public:
     void check_for_roof() ;
     void check_camera_visibility() ;
 
+    //Signals
+    void enter_roof_event(Variant area);
+    void enter_wall_event(Variant area);
+    void exit_roof_event(Variant area);
+    void exit_wall_event(Variant area);
+    
     //Getters and setters
     void set_mouse_sensitivity(const float sen);
     void set_walk_speed(const float spd);
@@ -99,6 +116,8 @@ public:
     void set_camera_predict(const float pre);
     void set_camera_predict_speed(const float cps);
     void set_invert_camera_movement(const bool inv);
+    void set_roof_detect_shape(Ref<Shape3D> shape);
+    void set_wall_detect_shape(Ref<Shape3D> shape);
 
     float get_mouse_sensitivity() const;
     float get_walk_speed() const;
@@ -111,4 +130,6 @@ public:
     float get_camera_predict_speed() const;
     bool get_invert_camera_movement() const;
     Node3D* get_aim_node()const;
+    Ref<Shape3D> get_roof_detect_shape() const;
+    Ref<Shape3D> get_wall_detect_shape() const;
 };

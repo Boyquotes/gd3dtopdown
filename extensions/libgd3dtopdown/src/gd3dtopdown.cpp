@@ -43,7 +43,6 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_player_jump_velocity"), &GD3Dtopdown::get_player_jump_velocity);
     ClassDB::bind_method(D_METHOD("set_player_jump_velocity", "player_jump_velocity"), &GD3Dtopdown::set_player_jump_velocity);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "player_jump_velocity"), "set_player_jump_velocity", "get_player_jump_velocity");
-    
 
     ClassDB::bind_method(D_METHOD("get_lookat_position"), &GD3Dtopdown::get_lookat_position);
     ClassDB::bind_method(D_METHOD("get_aim_node"), &GD3Dtopdown::get_aim_node);
@@ -67,6 +66,20 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_camera_predict_speed"), &GD3Dtopdown::get_camera_predict_speed);
     ClassDB::bind_method(D_METHOD("set_camera_predict_speed", "camera_predict_speed"), &GD3Dtopdown::set_camera_predict_speed);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "camera_predict_speed"), "set_camera_predict_speed", "get_camera_predict_speed");
+
+    ClassDB::bind_method(D_METHOD("set_roof_detect_shape", "roof_detect_shape"), &GD3Dtopdown::set_roof_detect_shape);
+    ClassDB::bind_method(D_METHOD("get_roof_detect_shape"), &GD3Dtopdown::get_roof_detect_shape);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "roof_detect_shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape3D"), "set_roof_detect_shape", "get_roof_detect_shape");
+
+    ClassDB::bind_method(D_METHOD("set_wall_detect_shape", "wall_detect_shape"), &GD3Dtopdown::set_wall_detect_shape);
+    ClassDB::bind_method(D_METHOD("get_wall_detect_shape"), &GD3Dtopdown::get_wall_detect_shape);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "wall_detect_shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape3D"), "set_wall_detect_shape", "get_wall_detect_shape");
+
+    ClassDB::bind_method(D_METHOD("enter_wall_event"), &GD3Dtopdown::enter_wall_event);
+    ClassDB::bind_method(D_METHOD("enter_roof_event"), &GD3Dtopdown::enter_roof_event);
+    ClassDB::bind_method(D_METHOD("exit_wall_event"), &GD3Dtopdown::exit_wall_event);
+    ClassDB::bind_method(D_METHOD("exit_roof_event"), &GD3Dtopdown::exit_roof_event);
+
 }
 
 //Initializer functions, get pointers to Input and project settings. Set gravity value
@@ -115,12 +128,61 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not obtain reference to camera didnt initialize");
         }
-        rayexcludes.clear();
-        rayexcludes.push_back(get_rid());
-        rayexcludes.push_back(camera->get_camera_rid());
+        all_rayexcludes.clear();
+        wall_rayexcludes.clear();
+        roof_rayexcludes.clear();
+
+        //rayexcludes.clear();
+        //rayexcludes.push_back(get_rid());
+        //rayexcludes.push_back(camera->get_camera_rid());
         initialized = true;
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
+        
+        
+        roof_collision_area = memnew(Area3D);
+        wall_collision_area = memnew(Area3D);
+        if (roof_collision_area == nullptr || wall_collision_area == nullptr) 
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection areas");
+        }
+        add_child(roof_collision_area);
+        roof_collision_area->set_owner(this);
+        add_child(wall_collision_area);
+        wall_collision_area->set_owner(this);
 
+        CollisionShape3D* roof_col_shp = memnew(CollisionShape3D);
+        CollisionShape3D* wall_col_shp = memnew(CollisionShape3D);
+
+        if (roof_col_shp == nullptr || wall_col_shp == nullptr)
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection nodes");
+        }
+
+
+        //All this is better done in editor
+        roof_collision_area->add_child(roof_col_shp);
+        roof_collision_area->set_owner(roof_collision_area);
+
+        wall_collision_area->add_child(wall_col_shp);
+        wall_collision_area->set_owner(wall_collision_area);
+
+        if (wall_detect_shape.is_null() || wall_detect_shape.is_null())
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection shapes");
+        }
+        wall_col_shp->set_shape(wall_detect_shape);
+        roof_col_shp->set_shape(roof_detect_shape);
+
+        wall_collision_area->set_monitoring(true);
+        roof_collision_area->set_monitoring(true);
+
+        wall_collision_area->connect("area_entered", Callable(this, "enter_wall_event"));
+        roof_collision_area->connect("area_entered", Callable(this,"enter_roof_event"));
+        wall_collision_area->connect("area_exited", Callable(this,"exit_wall_event"));
+        roof_collision_area->connect("area_exited", Callable(this,"exit_roof_event"));
     }
     return initialized;
 }
@@ -128,7 +190,14 @@ void GD3Dtopdown::_uninitialize()
 {
     if (initialized)
     {
-        rayexcludes.clear();
+        memfree(wall_collision_area);
+        memfree(roof_collision_area);
+        wall_collision_area = nullptr;
+        roof_collision_area = nullptr;
+
+        roof_rayexcludes.clear();
+        wall_rayexcludes.clear();
+        all_rayexcludes.clear();
         old_aim_node = nullptr;
         old_roof_node = nullptr;
         old_intersect_node = nullptr;
@@ -254,7 +323,8 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 
         Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
                                             camera->project_ray_origin(mouse_pos), 
-                                            camera->project_ray_normal(mouse_pos) * 1000);
+                                            camera->project_ray_normal(mouse_pos) * 1000,
+                                            4294967295U, all_rayexcludes);
 
         Dictionary ray_dict = ph_server->space_get_direct_state(
                                             w3d->get_space())->intersect_ray(ray);
@@ -293,6 +363,7 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 }
 //Intersects and walls separate layers (soon)
 //Other functions
+
 void GD3Dtopdown::handle_aim_node(Node3D* nd)
 {
     if (old_aim_node == nd) return;
@@ -307,52 +378,63 @@ void GD3Dtopdown::handle_aim_node(Node3D* nd)
         //Highlight_function
     }
 }
-void GD3Dtopdown::check_for_roof()
+void GD3Dtopdown::enter_wall_event(Variant area)
 {
-    Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
-        get_position(),
-        get_position() + get_global_transform().get_basis().get_column(2) * 100,
-        4294967295U, rayexcludes);
+    Area3D* ar = cast_to<Area3D>(area);
+    if (ar == nullptr) return;
+    RID area_rid = ar->get_rid();
+    wall_rayexcludes.push_back(area_rid);
+    all_rayexcludes.push_back(area_rid);
 
-    Dictionary ray_dict = ph_server->space_get_direct_state(
-        w3d->get_space())->intersect_ray(ray);
-
-    Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
-
-    if (nd == old_roof_node) return;
-    if (old_roof_node != nullptr)
+}
+void GD3Dtopdown::enter_roof_event(Variant area)
+{
+    Area3D* ar = cast_to<Area3D>(area);
+    if (ar == nullptr) return;
+    RID area_rid = ar->get_rid();
+    roof_rayexcludes.push_back(area_rid);
+    all_rayexcludes.push_back(area_rid);
+}
+void GD3Dtopdown::exit_wall_event( Variant area)
+{
+    Area3D* ar = cast_to<Area3D>(area);
+    if (ar == nullptr) return;
+    RID area_rid = ar->get_rid();
+    wall_rayexcludes.clear();
+    all_rayexcludes.clear();
+    all_rayexcludes = roof_rayexcludes;
+    TypedArray<Area3D> cols = wall_collision_area->get_overlapping_areas();
+    
+    for (int64_t i = 0; i < cols.size(); i++)
     {
-        //Visuble roof function old_aim_node_->
-    }
-    old_aim_node = nd;
-    if (nd != nullptr)
-    {
-        //Invisible_roof
+        Area3D* wall_a = cast_to<Area3D>(cols[i]);
+        if (wall_a != nullptr) 
+        {
+            wall_rayexcludes.push_back(wall_a->get_rid());
+            all_rayexcludes.push_back(wall_a->get_rid());
+        }
     }
 }
-
-void GD3Dtopdown::check_camera_visibility()
+void GD3Dtopdown::exit_roof_event(Variant area)
 {
-    Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
-        camera->get_position(),
-        get_position(), 
-        4294967295U, rayexcludes);
-    
-    Dictionary ray_dict = ph_server->space_get_direct_state(
-        w3d->get_space())->intersect_ray(ray);
+    Area3D* ar = cast_to<Area3D>(area);
+    if (ar == nullptr) return;
+    RID area_rid = ar->get_rid();
+    roof_rayexcludes.clear();
+    all_rayexcludes.clear();
+    all_rayexcludes = wall_rayexcludes;
 
-    Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
-    if (nd == old_intersect_node) return;
-    if (old_intersect_node != nullptr)
+    TypedArray<Area3D> cols = roof_collision_area->get_overlapping_areas();
+
+    for (int64_t i = 0; i < cols.size(); i++)
     {
-        //Visb
+        Area3D* wall_a = cast_to<Area3D>(cols[i]);
+        if (wall_a != nullptr)
+        {
+            roof_rayexcludes.push_back(wall_a->get_rid());
+            all_rayexcludes.push_back(wall_a->get_rid());
+        }
     }
-    old_intersect_node = nd;
-    if (nd != nullptr)
-    {
-        //Invisible_roof
-    }
-    return ;
 }
 
 //Setters and getters
@@ -391,6 +473,14 @@ void GD3Dtopdown::set_camera_predict_speed(const float cps)
 void GD3Dtopdown::set_invert_camera_movement(const bool inv)
 {
     invert_camera_movement = inv;
+}
+void GD3Dtopdown::set_wall_detect_shape(Ref<Shape3D> shape)
+{
+    wall_detect_shape = shape;
+}
+void GD3Dtopdown::set_roof_detect_shape(Ref<Shape3D> shape)
+{
+    roof_detect_shape = shape;
 }
 
 float GD3Dtopdown::get_mouse_sensitivity() const
@@ -437,4 +527,13 @@ Node3D* GD3Dtopdown::get_aim_node()const
 {
     return old_aim_node;
 }
+Ref<Shape3D> GD3Dtopdown::get_roof_detect_shape() const
+{
+    return roof_detect_shape;
+}
+Ref<Shape3D> GD3Dtopdown::get_wall_detect_shape() const
+{
+    return wall_detect_shape;
+}
+
 

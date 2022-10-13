@@ -1,6 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bu76lxvtlxjrg"]
+[gd_scene load_steps=8 format=3 uid="uid://bu76lxvtlxjrg"]
 
 [ext_resource type="Script" path="res://scripts/gd3dtopdown.gd" id="1_xkpta"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_k33q7"]
+height = 200.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j0b8h"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6xfjb"]
 
@@ -15,6 +20,8 @@ size = Vector3(0.1, 0.1, 2)
 
 [node name="Gd3Dtopdown" type="GD3Dtopdown"]
 invert_camera_movement = true
+roof_detect_shape = SubResource("CylinderShape3D_k33q7")
+wall_detect_shape = SubResource("BoxShape3D_j0b8h")
 velocity = Vector3(0, -981.453, 0)
 script = ExtResource("1_xkpta")
 
