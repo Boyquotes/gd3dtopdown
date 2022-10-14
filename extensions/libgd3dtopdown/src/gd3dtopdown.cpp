@@ -173,16 +173,24 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection shapes");
         }
-        wall_col_shp->set_shape(wall_detect_shape);
-        roof_col_shp->set_shape(roof_detect_shape);
+        //wall_col_shp->set_shape(wall_detect_shape);
+       // roof_col_shp->set_shape(roof_detect_shape);
 
+        BoxShape3D* roof_box = memnew(BoxShape3D);
+        BoxShape3D* wall_box = memnew(BoxShape3D);
+        roof_box->set_size(Vector3(1, 20, 1));
+
+        wall_box->set_size(Vector3(1, 20, 1));
+        wall_col_shp->set_shape(wall_detect_shape);
+        roof_col_shp->set_shape(roof_box);
+        roof_collision_area->set_position(Vector3(0, 5, 0));
         wall_collision_area->set_monitoring(true);
         roof_collision_area->set_monitoring(true);
 
-        wall_collision_area->connect("area_entered", Callable(this, "enter_wall_event"));
-        roof_collision_area->connect("area_entered", Callable(this,"enter_roof_event"));
-        wall_collision_area->connect("area_exited", Callable(this,"exit_wall_event"));
-        roof_collision_area->connect("area_exited", Callable(this,"exit_roof_event"));
+        wall_collision_area->connect("body_entered", Callable(this, "enter_wall_event"));
+        roof_collision_area->connect("body_entered", Callable(this,"enter_roof_event"));
+        wall_collision_area->connect("body_exited", Callable(this,"exit_wall_event"));
+        roof_collision_area->connect("body_exited", Callable(this,"exit_roof_event"));
     }
     return initialized;
 }
@@ -319,6 +327,7 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 
     if (is_aiming)
     {
+
         Vector2 mouse_pos = get_viewport()->get_mouse_position();
 
         Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
@@ -328,17 +337,18 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 
         Dictionary ray_dict = ph_server->space_get_direct_state(
                                             w3d->get_space())->intersect_ray(ray);
-
-        if(ray_dict.has("position"))
+        if(ray_dict != Dictionary())
         {
             Vector3 pos = ray_dict["position"];
             lookat_pos.x = pos.x;
             lookat_pos.z = pos.z;
-        }
-        if (ray_dict.has("collider"))
-        {
+          
             Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
             handle_aim_node(nd);
+        }
+        else
+        {
+            handle_aim_node(nullptr);
         }
     }
     else
@@ -366,9 +376,11 @@ void GD3Dtopdown::_physics_process_handle(double delta)
 
 void GD3Dtopdown::handle_aim_node(Node3D* nd)
 {
+    
     if (old_aim_node == nd) return;
     if (old_aim_node != nullptr)
     {
+        
         //DeHighlight function old_aim_node_->
     }
     old_aim_node = nd;
@@ -380,7 +392,7 @@ void GD3Dtopdown::handle_aim_node(Node3D* nd)
 }
 void GD3Dtopdown::enter_wall_event(Variant area)
 {
-    Area3D* ar = cast_to<Area3D>(area);
+    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
     if (ar == nullptr) return;
     RID area_rid = ar->get_rid();
     wall_rayexcludes.push_back(area_rid);
@@ -389,7 +401,7 @@ void GD3Dtopdown::enter_wall_event(Variant area)
 }
 void GD3Dtopdown::enter_roof_event(Variant area)
 {
-    Area3D* ar = cast_to<Area3D>(area);
+    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
     if (ar == nullptr) return;
     RID area_rid = ar->get_rid();
     roof_rayexcludes.push_back(area_rid);
@@ -397,7 +409,7 @@ void GD3Dtopdown::enter_roof_event(Variant area)
 }
 void GD3Dtopdown::exit_wall_event( Variant area)
 {
-    Area3D* ar = cast_to<Area3D>(area);
+    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
     if (ar == nullptr) return;
     RID area_rid = ar->get_rid();
     wall_rayexcludes.clear();
@@ -417,7 +429,7 @@ void GD3Dtopdown::exit_wall_event( Variant area)
 }
 void GD3Dtopdown::exit_roof_event(Variant area)
 {
-    Area3D* ar = cast_to<Area3D>(area);
+    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
     if (ar == nullptr) return;
     RID area_rid = ar->get_rid();
     roof_rayexcludes.clear();

@@ -5,4 +5,4 @@ func _input(event):
 	_input_handle(event)
 func _physics_process(delta):
 	_physics_process_handle(delta)#
-	print(get_aim_node())
+	##print(get_aim_node())

@@ -26,6 +26,9 @@
 #include <godot_cpp/classes/area3d.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/shape3d.hpp>
+#include <godot_cpp/classes/box_shape3d.hpp>
+
+#include <godot_cpp/classes/physics_body3d.hpp>
 
 
 using namespace godot;
@@ -97,8 +100,6 @@ public:
    
     //Other functions
     void handle_aim_node(Node3D* nd);
-    void check_for_roof() ;
-    void check_camera_visibility() ;
 
     //Signals
     void enter_roof_event(Variant area);

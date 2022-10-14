@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bu76lxvtlxjrg"]
+[gd_scene load_steps=9 format=3 uid="uid://bu76lxvtlxjrg"]
 
 [ext_resource type="Script" path="res://scripts/gd3dtopdown.gd" id="1_xkpta"]
 
@@ -18,6 +18,8 @@ material = SubResource("StandardMaterial3D_3iy6x")
 [sub_resource type="BoxMesh" id="BoxMesh_mxfxm"]
 size = Vector3(0.1, 0.1, 2)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_uhpwu"]
+
 [node name="Gd3Dtopdown" type="GD3Dtopdown"]
 invert_camera_movement = true
 roof_detect_shape = SubResource("CylinderShape3D_k33q7")
@@ -34,3 +36,9 @@ mesh = SubResource("CapsuleMesh_rwd8d")
 [node name="MeshInstance3d2" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2894)
 mesh = SubResource("BoxMesh_mxfxm")
+
+[node name="Area3d" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="Area3d"]
+shape = SubResource("BoxShape3D_uhpwu")
