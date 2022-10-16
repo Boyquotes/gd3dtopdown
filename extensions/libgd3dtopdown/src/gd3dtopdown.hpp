@@ -30,6 +30,9 @@
 
 #include <godot_cpp/classes/physics_body3d.hpp>
 
+#include "gd3dvisual_obstacle.hpp"
+
+
 
 using namespace godot;
 
@@ -62,7 +65,7 @@ private:
     Vector3 lookat_position;
     NodePath camera_node_path;
     Camera3D* camera;
-    Vector3 camera_boon = Vector3(0, 10, 10);
+    Vector3 camera_boon = Vector3(0, 15, 10);
     float camera_predict = 0;
     float camera_predict_speed = 15;
     Vector3 camera_follow_position;
@@ -78,8 +81,6 @@ private:
 
     Area3D* roof_collision_area;
     Area3D* wall_collision_area;
-    Ref<Shape3D> roof_detect_shape;
-    Ref<Shape3D> wall_detect_shape;
 
 public:
 
@@ -91,7 +92,7 @@ public:
     virtual void _input(const Ref<InputEvent>& p_event) override;
     virtual void _physics_process(double delta) override;
    
-
+    
 #if defined(DEBUG_ENABLED)
     void _ready_handle();
     void _physics_process_handle(double delta);
@@ -102,10 +103,10 @@ public:
     void handle_aim_node(Node3D* nd);
 
     //Signals
-    void enter_roof_event(Variant area);
-    void enter_wall_event(Variant area);
-    void exit_roof_event(Variant area);
-    void exit_wall_event(Variant area);
+    void enter_roof_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
+    void enter_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
+    void exit_roof_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
+    void exit_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
     
     //Getters and setters
     void set_mouse_sensitivity(const float sen);
@@ -117,8 +118,6 @@ public:
     void set_camera_predict(const float pre);
     void set_camera_predict_speed(const float cps);
     void set_invert_camera_movement(const bool inv);
-    void set_roof_detect_shape(Ref<Shape3D> shape);
-    void set_wall_detect_shape(Ref<Shape3D> shape);
 
     float get_mouse_sensitivity() const;
     float get_walk_speed() const;
@@ -131,6 +130,5 @@ public:
     float get_camera_predict_speed() const;
     bool get_invert_camera_movement() const;
     Node3D* get_aim_node()const;
-    Ref<Shape3D> get_roof_detect_shape() const;
-    Ref<Shape3D> get_wall_detect_shape() const;
+  
 };

@@ -1,6 +1,7 @@
-[gd_scene load_steps=13 format=3 uid="uid://d4b7fmww6td57"]
+[gd_scene load_steps=14 format=3 uid="uid://d4b7fmww6td57"]
 
 [ext_resource type="PackedScene" uid="uid://bu76lxvtlxjrg" path="res://gd3dtopdown.tscn" id="1_744nn"]
+[ext_resource type="Script" path="res://roof_invisible.gd" id="2_2nwd5"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mlj0e"]
 
@@ -49,7 +50,8 @@ environment = SubResource("Environment_14mf4")
 
 [node name="Gd3Dtopdown" parent="." instance=ExtResource("1_744nn")]
 camera_node_path = NodePath("../Camera3d")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.16399, 10.7368, -10.5696)
+invert_camera_movement = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.16399, 10.7368, 2.89389)
 velocity = Vector3(0, 0, 0)
 
 [node name="Camera3d" type="Camera3D" parent="."]
@@ -57,11 +59,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.24536, 8.79923)
 
 [node name="Area3d" type="Area3D" parent="Camera3d"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+collision_layer = 0
+collision_mask = 0
+input_ray_pickable = false
+monitoring = false
+monitorable = false
 
 [node name="CollisionShape3d" type="CollisionShape3D" parent="Camera3d/Area3d"]
 shape = SubResource("BoxShape3D_4rlqq")
 
 [node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(14.4438, 0, 0, 0, 1, 0, 0, 0, 11.5976, 0, 0, 0)
+collision_layer = 3
 
 [node name="CollisionShape3d" type="CollisionShape3D" parent="Floor"]
 shape = SubResource("BoxShape3D_3hyu3")
@@ -78,8 +87,9 @@ shape = SubResource("CylinderShape3D_nycgp")
 [node name="MeshInstance3d" type="MeshInstance3D" parent="Cylinder"]
 mesh = SubResource("CylinderMesh_f3l8c")
 
-[node name="Wall" type="StaticBody3D" parent="."]
+[node name="Wall" type="GD3Dvisual_obstacle" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.38824, 2.16953, -3.57598)
+collision_layer = 3
 
 [node name="CollisionShape3d" type="CollisionShape3D" parent="Wall"]
 shape = SubResource("BoxShape3D_0obbd")
@@ -87,8 +97,10 @@ shape = SubResource("BoxShape3D_0obbd")
 [node name="MeshInstance3d" type="MeshInstance3D" parent="Wall"]
 mesh = SubResource("BoxMesh_bb8wi")
 
-[node name="Roof" type="StaticBody3D" parent="."]
+[node name="Roof" type="GD3Dvisual_obstacle" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 7.3881, 7.5654, -7.88441)
+collision_layer = 5
+script = ExtResource("2_2nwd5")
 
 [node name="MeshInstance3d" type="MeshInstance3D" parent="Roof"]
 mesh = SubResource("BoxMesh_bb8wi")

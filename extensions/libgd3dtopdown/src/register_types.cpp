@@ -5,7 +5,8 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "gd3ddtopdown.hpp"
+#include "gd3dtopdown.hpp"
+#include "gd3dvisual_obstacle.hpp"
 
 using namespace godot;
 
@@ -17,6 +18,7 @@ void initialize_gd3dtopdown_module(ModuleInitializationLevel p_level)
 	}
 
     ClassDB::register_class<GD3Dtopdown>();
+    ClassDB::register_class<GD3Dvisual_obstacle>();
 
 }
 void uninitialize_gd3dtopdown_module(ModuleInitializationLevel p_level)

@@ -1,4 +1,4 @@
-#include "gd3ddtopdown.hpp"
+#include "gd3dtopdown.hpp"
 
 GD3Dtopdown::GD3Dtopdown()
 {
@@ -22,6 +22,7 @@ GD3Dtopdown::~GD3Dtopdown()
 
 void GD3Dtopdown::_bind_methods()
 {
+   
 #if  defined(DEBUG_ENABLED) 
     ClassDB::bind_method(D_METHOD("_ready_handle"), &GD3Dtopdown::_ready_handle);
     ClassDB::bind_method(D_METHOD("_input_handle"), &GD3Dtopdown::_input_handle);
@@ -67,19 +68,10 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_camera_predict_speed", "camera_predict_speed"), &GD3Dtopdown::set_camera_predict_speed);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "camera_predict_speed"), "set_camera_predict_speed", "get_camera_predict_speed");
 
-    ClassDB::bind_method(D_METHOD("set_roof_detect_shape", "roof_detect_shape"), &GD3Dtopdown::set_roof_detect_shape);
-    ClassDB::bind_method(D_METHOD("get_roof_detect_shape"), &GD3Dtopdown::get_roof_detect_shape);
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "roof_detect_shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape3D"), "set_roof_detect_shape", "get_roof_detect_shape");
-
-    ClassDB::bind_method(D_METHOD("set_wall_detect_shape", "wall_detect_shape"), &GD3Dtopdown::set_wall_detect_shape);
-    ClassDB::bind_method(D_METHOD("get_wall_detect_shape"), &GD3Dtopdown::get_wall_detect_shape);
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "wall_detect_shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape3D"), "set_wall_detect_shape", "get_wall_detect_shape");
-
     ClassDB::bind_method(D_METHOD("enter_wall_event"), &GD3Dtopdown::enter_wall_event);
     ClassDB::bind_method(D_METHOD("enter_roof_event"), &GD3Dtopdown::enter_roof_event);
     ClassDB::bind_method(D_METHOD("exit_wall_event"), &GD3Dtopdown::exit_wall_event);
     ClassDB::bind_method(D_METHOD("exit_roof_event"), &GD3Dtopdown::exit_roof_event);
-
 }
 
 //Initializer functions, get pointers to Input and project settings. Set gravity value
@@ -132,12 +124,7 @@ bool GD3Dtopdown::_initialize()
         wall_rayexcludes.clear();
         roof_rayexcludes.clear();
 
-        //rayexcludes.clear();
-        //rayexcludes.push_back(get_rid());
-        //rayexcludes.push_back(camera->get_camera_rid());
-        initialized = true;
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
-        
         
         roof_collision_area = memnew(Area3D);
         wall_collision_area = memnew(Area3D);
@@ -148,11 +135,13 @@ bool GD3Dtopdown::_initialize()
         }
         add_child(roof_collision_area);
         roof_collision_area->set_owner(this);
+        
         add_child(wall_collision_area);
         wall_collision_area->set_owner(this);
 
         CollisionShape3D* roof_col_shp = memnew(CollisionShape3D);
         CollisionShape3D* wall_col_shp = memnew(CollisionShape3D);
+       
 
         if (roof_col_shp == nullptr || wall_col_shp == nullptr)
         {
@@ -160,37 +149,45 @@ bool GD3Dtopdown::_initialize()
             ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection nodes");
         }
 
-
         //All this is better done in editor
         roof_collision_area->add_child(roof_col_shp);
-        roof_collision_area->set_owner(roof_collision_area);
+        roof_col_shp->set_owner(roof_collision_area);
 
         wall_collision_area->add_child(wall_col_shp);
-        wall_collision_area->set_owner(wall_collision_area);
-
-        if (wall_detect_shape.is_null() || wall_detect_shape.is_null())
-        {
-            _uninitialize();
-            ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection shapes");
-        }
-        //wall_col_shp->set_shape(wall_detect_shape);
-       // roof_col_shp->set_shape(roof_detect_shape);
+        wall_col_shp->set_owner(wall_collision_area);
 
         BoxShape3D* roof_box = memnew(BoxShape3D);
         BoxShape3D* wall_box = memnew(BoxShape3D);
-        roof_box->set_size(Vector3(1, 20, 1));
 
-        wall_box->set_size(Vector3(1, 20, 1));
-        wall_col_shp->set_shape(wall_detect_shape);
+        roof_box->set_size(Vector3(1, 20, 1));
+        wall_box->set_size(Vector3(1, 1, camera_boon.length()));
+        
+        wall_col_shp->set_shape(wall_box);
         roof_col_shp->set_shape(roof_box);
-        roof_collision_area->set_position(Vector3(0, 5, 0));
+        
+        roof_collision_area->set_position(Vector3(0, 10, 0));
+        wall_collision_area->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
+
+        wall_collision_area->set_collision_mask(0);
+        roof_collision_area->set_collision_mask(0);
+        wall_collision_area->set_collision_mask_value(2, true);
+        roof_collision_area->set_collision_mask_value(3, true);
+
         wall_collision_area->set_monitoring(true);
         roof_collision_area->set_monitoring(true);
+        wall_collision_area->set_monitorable(true);
+        roof_collision_area->set_monitorable(true);
+        wall_collision_area->set_collision_layer(0);
+        roof_collision_area->set_collision_layer(0);
 
-        wall_collision_area->connect("body_entered", Callable(this, "enter_wall_event"));
-        roof_collision_area->connect("body_entered", Callable(this,"enter_roof_event"));
-        wall_collision_area->connect("body_exited", Callable(this,"exit_wall_event"));
-        roof_collision_area->connect("body_exited", Callable(this,"exit_roof_event"));
+        wall_collision_area->set_priority(2);
+        roof_collision_area->set_priority(2);
+        
+        wall_collision_area->connect("body_shape_entered", Callable(this, "enter_wall_event"));
+        roof_collision_area->connect("body_shape_entered", Callable(this, "enter_roof_event"));
+        wall_collision_area->connect("body_shape_exited", Callable(this, "exit_wall_event"));
+        roof_collision_area->connect("body_shape_exited", Callable(this, "exit_roof_event"));
+        initialized = true;
     }
     return initialized;
 }
@@ -198,8 +195,20 @@ void GD3Dtopdown::_uninitialize()
 {
     if (initialized)
     {
+        if (roof_collision_area != nullptr)
+        {
+            roof_collision_area->disconnect("body_entered", Callable(this, "enter_roof_event"));
+            roof_collision_area->disconnect("body_exited", Callable(this, "exit_roof_event"));
+        }
+        if(wall_collision_area != nullptr)
+        {
+            wall_collision_area->disconnect("body_entered", Callable(this, "enter_wall_event"));
+            wall_collision_area->disconnect("body_exited", Callable(this, "exit_wall_event"));
+        }
+      
         memfree(wall_collision_area);
         memfree(roof_collision_area);
+
         wall_collision_area = nullptr;
         roof_collision_area = nullptr;
 
@@ -232,8 +241,9 @@ Calling Engine::get_singleton()->is_editor_hint() does not solve the issue as th
 */
 void GD3Dtopdown::_ready()
 {
-    if (Engine::get_singleton()->is_editor_hint()) return;
+    
 #if defined(DEBUG_ENABLED)
+    if (Engine::get_singleton()->is_editor_hint()) return;
     WARN_PRINT_ONCE("Ready function called");
 }
 void GD3Dtopdown::_ready_handle()
@@ -245,8 +255,8 @@ void GD3Dtopdown::_ready_handle()
 
 void GD3Dtopdown::_input(const Ref<InputEvent>& p_event)
 {
-    if (Engine::get_singleton()->is_editor_hint()) return;
 #if defined(DEBUG_ENABLED)
+    if (Engine::get_singleton()->is_editor_hint()) return;
     WARN_PRINT_ONCE("Input function called");
 }
 void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
@@ -270,8 +280,8 @@ void GD3Dtopdown::_input_handle(const Ref<InputEvent>& p_event)
 
 void GD3Dtopdown::_physics_process(double delta)
 {
-    if (Engine::get_singleton()->is_editor_hint()) return;
 #if defined(DEBUG_ENABLED) 
+if (Engine::get_singleton()->is_editor_hint()) return;
     WARN_PRINT_ONCE("Physics process called");
 }
 void GD3Dtopdown::_physics_process_handle(double delta)
@@ -308,14 +318,15 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     Vector3 direction = (camera->get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
     
     Vector3 lookat_pos = get_position();
+    Vector3 front_pos = -get_global_transform().get_basis().get_column(2);
     if (direction.is_zero_approx())
     {
         vel.x = Math::move_toward(vel.x, 0, speed);
         vel.z = Math::move_toward(vel.z, 0, speed);
        
-        Vector3 front_pos = get_global_transform().get_basis().get_column(2);
-        lookat_pos.x -=  front_pos.x;
-        lookat_pos.z -=  front_pos.z;
+        
+        lookat_pos.x +=  front_pos.x;
+        lookat_pos.z +=  front_pos.z;
     }
     else
     {
@@ -360,16 +371,18 @@ void GD3Dtopdown::_physics_process_handle(double delta)
         }
     }
     
-    camera_follow_position = camera_follow_position.lerp(camera_predict * direction + get_position(), camera_predict_speed * delta);
+    camera_follow_position = camera_follow_position.lerp(camera_predict* direction.length_squared() 
+                                * front_pos + get_position(), camera_predict_speed * delta);
     
     //Setting the resulting logic to the character and camera nodes
     set_velocity(vel);
-    move_and_slide();
     lookat_position = lookat_pos;
     look_at(lookat_position);
+    move_and_slide();
     
     camera->set_position(camera_follow_position + camera_boon);
     camera->look_at(camera_follow_position);
+    wall_collision_area->look_at_from_position( get_position(), camera->get_position());
 }
 //Intersects and walls separate layers (soon)
 //Other functions
@@ -380,7 +393,6 @@ void GD3Dtopdown::handle_aim_node(Node3D* nd)
     if (old_aim_node == nd) return;
     if (old_aim_node != nullptr)
     {
-        
         //DeHighlight function old_aim_node_->
     }
     old_aim_node = nd;
@@ -390,26 +402,28 @@ void GD3Dtopdown::handle_aim_node(Node3D* nd)
         //Highlight_function
     }
 }
-void GD3Dtopdown::enter_wall_event(Variant area)
+void GD3Dtopdown::enter_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index)
 {
-    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
+    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(body);
     if (ar == nullptr) return;
     RID area_rid = ar->get_rid();
     wall_rayexcludes.push_back(area_rid);
     all_rayexcludes.push_back(area_rid);
 
 }
-void GD3Dtopdown::enter_roof_event(Variant area)
+void GD3Dtopdown::enter_roof_event(Variant body_rid, Variant  body, int body_shape_index, int local_shape_index)
 {
-    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
+   
+    GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar == nullptr) return;
+    ar->emit_visual_disappear();
     RID area_rid = ar->get_rid();
     roof_rayexcludes.push_back(area_rid);
     all_rayexcludes.push_back(area_rid);
 }
-void GD3Dtopdown::exit_wall_event( Variant area)
+void GD3Dtopdown::exit_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index)
 {
-    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
+    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(body);
     if (ar == nullptr) return;
     RID area_rid = ar->get_rid();
     wall_rayexcludes.clear();
@@ -427,10 +441,11 @@ void GD3Dtopdown::exit_wall_event( Variant area)
         }
     }
 }
-void GD3Dtopdown::exit_roof_event(Variant area)
+void GD3Dtopdown::exit_roof_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index)
 {
-    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(area);
+    GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar == nullptr) return;
+    ar->emit_visual_appear();
     RID area_rid = ar->get_rid();
     roof_rayexcludes.clear();
     all_rayexcludes.clear();
@@ -486,14 +501,7 @@ void GD3Dtopdown::set_invert_camera_movement(const bool inv)
 {
     invert_camera_movement = inv;
 }
-void GD3Dtopdown::set_wall_detect_shape(Ref<Shape3D> shape)
-{
-    wall_detect_shape = shape;
-}
-void GD3Dtopdown::set_roof_detect_shape(Ref<Shape3D> shape)
-{
-    roof_detect_shape = shape;
-}
+
 
 float GD3Dtopdown::get_mouse_sensitivity() const
 {
@@ -539,13 +547,8 @@ Node3D* GD3Dtopdown::get_aim_node()const
 {
     return old_aim_node;
 }
-Ref<Shape3D> GD3Dtopdown::get_roof_detect_shape() const
-{
-    return roof_detect_shape;
-}
-Ref<Shape3D> GD3Dtopdown::get_wall_detect_shape() const
-{
-    return wall_detect_shape;
-}
+
+
+
 
 
