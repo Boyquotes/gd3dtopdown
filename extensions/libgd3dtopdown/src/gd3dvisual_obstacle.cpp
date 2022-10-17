@@ -1,4 +1,4 @@
-#include "gd3dvisual_obstacle.hpp"
+#include "GD3Dvisual_obstacle.hpp"
 
 GD3Dvisual_obstacle::GD3Dvisual_obstacle()
 {

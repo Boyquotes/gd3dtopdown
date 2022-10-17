@@ -20,7 +20,7 @@ if env["target"] in ["editor", "template_debug"]:
 sources = Glob("src/*.cpp")
 
 library = env.SharedLibrary(
-    "../../gd3dtopdown_godot/bin/libgd3dtopdown{}{}".format(
+    "../../gd3dtopdown_godot/bin/libGD3Dtopdown{}{}".format(
          env["suffix"], env["SHLIBSUFFIX"]
     ),
     source=sources,

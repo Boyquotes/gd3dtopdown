@@ -1,6 +1,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#ifndef GD3DTOPDOWN
+#define GD3DTOPDOWN
 
 #include <godot_cpp/core/binder_common.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
@@ -30,13 +32,13 @@
 
 #include <godot_cpp/classes/physics_body3d.hpp>
 
-#include "gd3dvisual_obstacle.hpp"
-
-
+#include "GD3Dvisual_obstacle.hpp"
+#include "GD3Dinterior_area.hpp"
 
 using namespace godot;
-
 class GD3Dtopdown : public CharacterBody3D {
+    
+
     GDCLASS(GD3Dtopdown, CharacterBody3D);
 
     GD3Dtopdown();
@@ -46,19 +48,18 @@ protected:
     
 private:
    
+    bool initialized;
     //Singletons
     Input* input;
     ProjectSettings* p_settings;
     PhysicsServer3D* ph_server;
     Ref<World3D> w3d;
 
-    bool initialized;
-
+    //Values
     float gravity = 9.8f;
     float mouse_sensitivity = 0.2f;
     float walk_speed = 5.0f;
     float sprint_speed = 10.0f;
-    float player_jump_velocity = 4.5f;
 
 //Aiming and camera properties
     bool is_aiming;
@@ -66,21 +67,18 @@ private:
     NodePath camera_node_path;
     Camera3D* camera;
     Vector3 camera_boon = Vector3(0, 15, 10);
-    float camera_predict = 0;
+    float camera_predict = 1;
     float camera_predict_speed = 15;
     Vector3 camera_follow_position;
     bool invert_camera_movement;
-
-//Environment checks
-    Array wall_rayexcludes = {};
-    Array roof_rayexcludes = {};
-    Array all_rayexcludes = {};
     Node3D* old_aim_node;
-    Node3D* old_roof_node;
-    Node3D* old_intersect_node;
 
-    Area3D* roof_collision_area;
-    Area3D* wall_collision_area;
+//Visual obstacles
+    Area3D* interiors_collision_area;
+
+    uint32_t visual_collision_mask;
+    Array visual_obstacle_rayexcludes = {};
+    Area3D* visual_obstacle_collision_area;
 
 public:
 
@@ -103,26 +101,27 @@ public:
     void handle_aim_node(Node3D* nd);
 
     //Signals
-    void enter_roof_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
-    void enter_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
-    void exit_roof_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
-    void exit_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index);
+    void enter_visual_obstacle_event(Variant body);
+    void exit_visual_obstacle_event(Variant body);
+
+    void enter_interior_event(Variant area);
+    void exit_interior_event(Variant area);
+    
     
     //Getters and setters
     void set_mouse_sensitivity(const float sen);
     void set_walk_speed(const float spd);
     void set_sprint_speed(const float spd);
-    void set_player_jump_velocity(const float vel);
     void set_camera_node_path(const NodePath& path);
     void set_camera_boon(const Vector3& pos);
     void set_camera_predict(const float pre);
     void set_camera_predict_speed(const float cps);
     void set_invert_camera_movement(const bool inv);
+    void set_visual_collision_mask(uint32_t p_mask);
 
     float get_mouse_sensitivity() const;
     float get_walk_speed() const;
     float get_sprint_speed() const;
-    float get_player_jump_velocity() const;
     Vector3 get_lookat_position() const;
     NodePath get_camera_node_path() const;
     Vector3 get_camera_boon() const;
@@ -130,5 +129,7 @@ public:
     float get_camera_predict_speed() const;
     bool get_invert_camera_movement() const;
     Node3D* get_aim_node()const;
+    uint32_t get_visual_collision_mask() const;
   
 };
+#endif 

@@ -1,13 +1,12 @@
-#include "gd3dtopdown.hpp"
+#include "GD3Dtopdown.hpp"
 
 GD3Dtopdown::GD3Dtopdown()
 {
     initialized = false;
-    
+    _uninitialize();
     //Register input actions if they are not registerd beforehand
     InputMap* input_map = InputMap::get_singleton();
     
-    if(!input_map->has_action("jump"))         input_map->add_action("jump");
     if(!input_map->has_action("sprint"))       input_map->add_action("sprint");
     if(!input_map->has_action("move_left"))    input_map->add_action("move_left");
     if(!input_map->has_action("move_right"))   input_map->add_action("move_right");
@@ -41,10 +40,6 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_sprint_speed", "sprint_speed"), &GD3Dtopdown::set_sprint_speed);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "sprint_speed"), "set_sprint_speed", "get_sprint_speed");
 
-    ClassDB::bind_method(D_METHOD("get_player_jump_velocity"), &GD3Dtopdown::get_player_jump_velocity);
-    ClassDB::bind_method(D_METHOD("set_player_jump_velocity", "player_jump_velocity"), &GD3Dtopdown::set_player_jump_velocity);
-    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "player_jump_velocity"), "set_player_jump_velocity", "get_player_jump_velocity");
-
     ClassDB::bind_method(D_METHOD("get_lookat_position"), &GD3Dtopdown::get_lookat_position);
     ClassDB::bind_method(D_METHOD("get_aim_node"), &GD3Dtopdown::get_aim_node);
     
@@ -68,10 +63,17 @@ void GD3Dtopdown::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_camera_predict_speed", "camera_predict_speed"), &GD3Dtopdown::set_camera_predict_speed);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "camera_predict_speed"), "set_camera_predict_speed", "get_camera_predict_speed");
 
-    ClassDB::bind_method(D_METHOD("enter_wall_event"), &GD3Dtopdown::enter_wall_event);
-    ClassDB::bind_method(D_METHOD("enter_roof_event"), &GD3Dtopdown::enter_roof_event);
-    ClassDB::bind_method(D_METHOD("exit_wall_event"), &GD3Dtopdown::exit_wall_event);
-    ClassDB::bind_method(D_METHOD("exit_roof_event"), &GD3Dtopdown::exit_roof_event);
+    ClassDB::bind_method(D_METHOD("get_visual_collision_mask"), &GD3Dtopdown::get_visual_collision_mask);
+    ClassDB::bind_method(D_METHOD("set_visual_collision_mask", "visual_collision_mask"), &GD3Dtopdown::set_visual_collision_mask);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "visual_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_visual_collision_mask", "get_visual_collision_mask");
+
+
+    ClassDB::bind_method(D_METHOD("enter_visual_obstacle_event"), &GD3Dtopdown::enter_visual_obstacle_event);
+    ClassDB::bind_method(D_METHOD("exit_visual_obstacle_event"), &GD3Dtopdown::exit_visual_obstacle_event);
+    ClassDB::bind_method(D_METHOD("enter_interior_event"), &GD3Dtopdown::enter_interior_event);
+    ClassDB::bind_method(D_METHOD("exit_interior_event"), &GD3Dtopdown::exit_interior_event);
+
+   
 }
 
 //Initializer functions, get pointers to Input and project settings. Set gravity value
@@ -120,73 +122,62 @@ bool GD3Dtopdown::_initialize()
             _uninitialize();
             ERR_FAIL_V_MSG(false, "Could not obtain reference to camera didnt initialize");
         }
-        all_rayexcludes.clear();
-        wall_rayexcludes.clear();
-        roof_rayexcludes.clear();
+        
+        visual_obstacle_collision_area = memnew(Area3D);
+        CollisionShape3D* visual_obstacle_col_shp = memnew(CollisionShape3D);
+        BoxShape3D* visual_obstacle_box = memnew(BoxShape3D);
+        if ( visual_obstacle_collision_area == nullptr || visual_obstacle_col_shp == nullptr 
+                || visual_obstacle_box == nullptr)
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not initialize visual_obstacle detection areas");
+        }
+        
+        add_child(visual_obstacle_collision_area);
+        visual_obstacle_collision_area->set_owner(this);
+        visual_obstacle_collision_area->add_child(visual_obstacle_col_shp);
+        visual_obstacle_col_shp->set_owner(visual_obstacle_collision_area);
+        visual_obstacle_col_shp->set_shape(visual_obstacle_box);
 
+        visual_obstacle_box->set_size(Vector3(1, 1, camera_boon.length()));
+        visual_obstacle_col_shp->set_position(Vector3(0, 0, -camera_boon.length()/2.0));
+
+        visual_obstacle_collision_area->set_collision_layer(0);
+        visual_obstacle_collision_area->set_collision_mask(visual_collision_mask);
+        visual_obstacle_collision_area->set_monitoring(true);
+        visual_obstacle_collision_area->set_monitorable(true);
+        
+        visual_obstacle_collision_area->connect("body_entered", Callable(this, "enter_visual_obstacle_event"));
+        visual_obstacle_collision_area->connect("body_exited", Callable(this, "exit_visual_obstacle_event"));
+
+        interiors_collision_area = memnew(Area3D);
+        CollisionShape3D* interiors_collision_col_shp = memnew(CollisionShape3D);
+        BoxShape3D* interiors_collision_box= memnew(BoxShape3D);
+
+        if (interiors_collision_area == nullptr || interiors_collision_col_shp == nullptr 
+                                        || interiors_collision_box == nullptr)
+        {
+            _uninitialize();
+            ERR_FAIL_V_MSG(false, "Could not initialize interiors_collision_area");
+        }
+        add_child(interiors_collision_area);
+        interiors_collision_area->set_owner(this);
+        interiors_collision_area->add_child(interiors_collision_col_shp);
+        interiors_collision_col_shp->set_owner(interiors_collision_area);
+        interiors_collision_col_shp->set_shape(interiors_collision_box);
+
+        interiors_collision_box->set_size(Vector3(1, 1, 1));
+
+        interiors_collision_area->set_collision_layer(0);
+        interiors_collision_area->set_collision_mask(visual_collision_mask);
+        interiors_collision_area->set_monitoring(true);
+        interiors_collision_area->set_monitorable(true);
+
+        interiors_collision_area->connect("area_entered", Callable(this, "enter_interior_event"));
+        interiors_collision_area->connect("area_exited", Callable(this, "exit_interior_event"));
+        
+        visual_obstacle_rayexcludes.clear();
         WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
-        
-        roof_collision_area = memnew(Area3D);
-        wall_collision_area = memnew(Area3D);
-        if (roof_collision_area == nullptr || wall_collision_area == nullptr) 
-        {
-            _uninitialize();
-            ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection areas");
-        }
-        add_child(roof_collision_area);
-        roof_collision_area->set_owner(this);
-        
-        add_child(wall_collision_area);
-        wall_collision_area->set_owner(this);
-
-        CollisionShape3D* roof_col_shp = memnew(CollisionShape3D);
-        CollisionShape3D* wall_col_shp = memnew(CollisionShape3D);
-       
-
-        if (roof_col_shp == nullptr || wall_col_shp == nullptr)
-        {
-            _uninitialize();
-            ERR_FAIL_V_MSG(false, "Could not initialize roof or wall detection nodes");
-        }
-
-        //All this is better done in editor
-        roof_collision_area->add_child(roof_col_shp);
-        roof_col_shp->set_owner(roof_collision_area);
-
-        wall_collision_area->add_child(wall_col_shp);
-        wall_col_shp->set_owner(wall_collision_area);
-
-        BoxShape3D* roof_box = memnew(BoxShape3D);
-        BoxShape3D* wall_box = memnew(BoxShape3D);
-
-        roof_box->set_size(Vector3(1, 20, 1));
-        wall_box->set_size(Vector3(1, 1, camera_boon.length()));
-        
-        wall_col_shp->set_shape(wall_box);
-        roof_col_shp->set_shape(roof_box);
-        
-        roof_collision_area->set_position(Vector3(0, 10, 0));
-        wall_collision_area->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
-
-        wall_collision_area->set_collision_mask(0);
-        roof_collision_area->set_collision_mask(0);
-        wall_collision_area->set_collision_mask_value(2, true);
-        roof_collision_area->set_collision_mask_value(3, true);
-
-        wall_collision_area->set_monitoring(true);
-        roof_collision_area->set_monitoring(true);
-        wall_collision_area->set_monitorable(true);
-        roof_collision_area->set_monitorable(true);
-        wall_collision_area->set_collision_layer(0);
-        roof_collision_area->set_collision_layer(0);
-
-        wall_collision_area->set_priority(2);
-        roof_collision_area->set_priority(2);
-        
-        wall_collision_area->connect("body_shape_entered", Callable(this, "enter_wall_event"));
-        roof_collision_area->connect("body_shape_entered", Callable(this, "enter_roof_event"));
-        wall_collision_area->connect("body_shape_exited", Callable(this, "exit_wall_event"));
-        roof_collision_area->connect("body_shape_exited", Callable(this, "exit_roof_event"));
         initialized = true;
     }
     return initialized;
@@ -195,29 +186,24 @@ void GD3Dtopdown::_uninitialize()
 {
     if (initialized)
     {
-        if (roof_collision_area != nullptr)
+       
+        if(visual_obstacle_collision_area != nullptr)
         {
-            roof_collision_area->disconnect("body_entered", Callable(this, "enter_roof_event"));
-            roof_collision_area->disconnect("body_exited", Callable(this, "exit_roof_event"));
+            visual_obstacle_collision_area->disconnect("body_entered", Callable(this, "enter_visual_obstacle_event"));
+            visual_obstacle_collision_area->disconnect("body_exited", Callable(this, "exit_visual_obstacle_event"));
         }
-        if(wall_collision_area != nullptr)
+        if(interiors_collision_area != nullptr)
         {
-            wall_collision_area->disconnect("body_entered", Callable(this, "enter_wall_event"));
-            wall_collision_area->disconnect("body_exited", Callable(this, "exit_wall_event"));
+            interiors_collision_area->disconnect("area_entered", Callable(this, "enter_interior_event"));
+            interiors_collision_area->disconnect("area_exited", Callable(this, "exit_interior_event"));
         }
-      
-        memfree(wall_collision_area);
-        memfree(roof_collision_area);
-
-        wall_collision_area = nullptr;
-        roof_collision_area = nullptr;
-
-        roof_rayexcludes.clear();
-        wall_rayexcludes.clear();
-        all_rayexcludes.clear();
+        memfree(visual_obstacle_collision_area);
+        memfree(interiors_collision_area);
+        
+        visual_obstacle_collision_area = nullptr;
+        interiors_collision_area = nullptr;
+        visual_obstacle_rayexcludes.clear();
         old_aim_node = nullptr;
-        old_roof_node = nullptr;
-        old_intersect_node = nullptr;
         p_settings = nullptr;
         input = nullptr;
         camera = nullptr;
@@ -293,7 +279,6 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     //Inputs and environment
     is_aiming = input->is_action_pressed("aim");
     Vector2 input_dir = input->get_vector("move_left", "move_right", "move_forward", "move_back");
-    bool is_jumping = input->is_action_pressed("jump");
     bool is_sprinting = input->is_action_pressed("sprint");
     Vector3 vel = get_velocity();
     bool floored = is_on_floor();
@@ -303,11 +288,6 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     if (!floored)
     {
         vel.y -= gravity * delta;
-    }
-
-    if (floored && is_jumping )
-    {
-        vel.y = player_jump_velocity;
     }
 
     if (is_sprinting && floored)
@@ -344,7 +324,7 @@ void GD3Dtopdown::_physics_process_handle(double delta)
         Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
                                             camera->project_ray_origin(mouse_pos), 
                                             camera->project_ray_normal(mouse_pos) * 1000,
-                                            4294967295U, all_rayexcludes);
+                                            4294967295U, visual_obstacle_rayexcludes);
 
         Dictionary ray_dict = ph_server->space_get_direct_state(
                                             w3d->get_space())->intersect_ray(ray);
@@ -379,17 +359,17 @@ void GD3Dtopdown::_physics_process_handle(double delta)
     lookat_position = lookat_pos;
     look_at(lookat_position);
     move_and_slide();
-    
-    camera->set_position(camera_follow_position + camera_boon);
+    Vector3 cam_pos = camera_follow_position + camera_boon;
+    camera->set_position(cam_pos);
     camera->look_at(camera_follow_position);
-    wall_collision_area->look_at_from_position( get_position(), camera->get_position());
+    visual_obstacle_collision_area->look_at(cam_pos);
+
 }
-//Intersects and walls separate layers (soon)
+//Intersects and visual_obstacles separate layers (soon)
 //Other functions
 
 void GD3Dtopdown::handle_aim_node(Node3D* nd)
 {
-    
     if (old_aim_node == nd) return;
     if (old_aim_node != nullptr)
     {
@@ -402,66 +382,47 @@ void GD3Dtopdown::handle_aim_node(Node3D* nd)
         //Highlight_function
     }
 }
-void GD3Dtopdown::enter_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index)
+void GD3Dtopdown::enter_visual_obstacle_event(Variant body)
 {
-    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(body);
-    if (ar == nullptr) return;
-    RID area_rid = ar->get_rid();
-    wall_rayexcludes.push_back(area_rid);
-    all_rayexcludes.push_back(area_rid);
-
-}
-void GD3Dtopdown::enter_roof_event(Variant body_rid, Variant  body, int body_shape_index, int local_shape_index)
-{
-   
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar == nullptr) return;
     ar->emit_visual_disappear();
     RID area_rid = ar->get_rid();
-    roof_rayexcludes.push_back(area_rid);
-    all_rayexcludes.push_back(area_rid);
+    visual_obstacle_rayexcludes.push_back(area_rid);
 }
-void GD3Dtopdown::exit_wall_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index)
-{
-    PhysicsBody3D* ar = cast_to<PhysicsBody3D>(body);
-    if (ar == nullptr) return;
-    RID area_rid = ar->get_rid();
-    wall_rayexcludes.clear();
-    all_rayexcludes.clear();
-    all_rayexcludes = roof_rayexcludes;
-    TypedArray<Area3D> cols = wall_collision_area->get_overlapping_areas();
-    
-    for (int64_t i = 0; i < cols.size(); i++)
-    {
-        Area3D* wall_a = cast_to<Area3D>(cols[i]);
-        if (wall_a != nullptr) 
-        {
-            wall_rayexcludes.push_back(wall_a->get_rid());
-            all_rayexcludes.push_back(wall_a->get_rid());
-        }
-    }
-}
-void GD3Dtopdown::exit_roof_event(Variant body_rid, Variant body, int body_shape_index, int local_shape_index)
+
+void GD3Dtopdown::exit_visual_obstacle_event(Variant body)
 {
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar == nullptr) return;
+
     ar->emit_visual_appear();
     RID area_rid = ar->get_rid();
-    roof_rayexcludes.clear();
-    all_rayexcludes.clear();
-    all_rayexcludes = wall_rayexcludes;
-
-    TypedArray<Area3D> cols = roof_collision_area->get_overlapping_areas();
-
+    visual_obstacle_rayexcludes.clear();
+   
+    TypedArray<Node3D> cols = visual_obstacle_collision_area->get_overlapping_bodies();
+    
+    if (cols.size() < 1) return;
     for (int64_t i = 0; i < cols.size(); i++)
     {
-        Area3D* wall_a = cast_to<Area3D>(cols[i]);
-        if (wall_a != nullptr)
+        GD3Dvisual_obstacle* visual_obstacle_a = cast_to<GD3Dvisual_obstacle>(cols[i]);
+        if (visual_obstacle_a != nullptr) 
         {
-            roof_rayexcludes.push_back(wall_a->get_rid());
-            all_rayexcludes.push_back(wall_a->get_rid());
+            visual_obstacle_rayexcludes.push_back(visual_obstacle_a->get_rid());
         }
     }
+}
+void GD3Dtopdown::enter_interior_event(Variant area)
+{
+    GD3Dinterior_area* ar = cast_to<GD3Dinterior_area>(area);
+    if (ar == nullptr) return;
+    ar->on_enter_ignore();
+}
+void GD3Dtopdown::exit_interior_event(Variant area)
+{
+    GD3Dinterior_area* ar = cast_to<GD3Dinterior_area>(area);
+    if (ar == nullptr) return;
+    ar->on_enter_ignore();
 }
 
 //Setters and getters
@@ -476,10 +437,6 @@ void GD3Dtopdown::set_walk_speed(const float spd)
 void GD3Dtopdown::set_sprint_speed(const float spd)
 {
     sprint_speed = spd;
-}
-void GD3Dtopdown::set_player_jump_velocity(const float vel)
-{
-    player_jump_velocity = vel;
 }
 void GD3Dtopdown::set_camera_node_path(const NodePath& path)
 {
@@ -515,10 +472,6 @@ float GD3Dtopdown::get_sprint_speed() const
 {
     return sprint_speed;
 }
-float GD3Dtopdown::get_player_jump_velocity() const
-{
-    return player_jump_velocity;
-}
 Vector3 GD3Dtopdown::get_lookat_position() const
 {
     return lookat_position;
@@ -548,7 +501,26 @@ Node3D* GD3Dtopdown::get_aim_node()const
     return old_aim_node;
 }
 
+void GD3Dtopdown::set_visual_collision_mask(uint32_t p_mask)
+{
+    visual_collision_mask = p_mask;
+    /*Null checks in setter and getter couse editor to crash 
+    if (visual_obstacle_collision_area != nullptr)
+    {
+        visual_obstacle_collision_area->set_collision_mask(p_mask);
+    }*/
+}
+uint32_t GD3Dtopdown::get_visual_collision_mask() const
+{
+    uint32_t msk = visual_collision_mask;
+   /*
+   if (visual_obstacle_collision_area != nullptr)
+    {
 
+        msk = visual_obstacle_collision_area->get_collision_mask();
+    }*/
+    return msk;
+}
 
 
 

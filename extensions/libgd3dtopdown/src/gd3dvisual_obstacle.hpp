@@ -1,11 +1,8 @@
-#ifndef GD3DVISUAL_OBSTACLE
-#define GD3DVISUAL_OBSTACLE
-
-
-
 #ifdef WIN32
 #include <windows.h>
 #endif
+#ifndef GD3DVISUAL_OBSTACLE
+#define GD3DVISUAL_OBSTACLE
 
 #include <godot_cpp/core/binder_common.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
