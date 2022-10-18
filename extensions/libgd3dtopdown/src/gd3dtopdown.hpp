@@ -75,10 +75,14 @@ private:
 
 //Visual obstacles
     Area3D* interiors_collision_area;
+    TypedArray<RID> interior_area_rayexcludes = {};
 
     uint32_t visual_collision_mask;
-    Array visual_obstacle_rayexcludes = {};
+    TypedArray<RID>  visual_obstacle_rayexcludes = {};
     Area3D* visual_obstacle_collision_area;
+
+    TypedArray<RID> all_rayexcludes = {};
+
 
 public:
 
@@ -109,25 +113,21 @@ public:
     
     
     //Getters and setters
-    void set_mouse_sensitivity(const float sen);
-    void set_walk_speed(const float spd);
-    void set_sprint_speed(const float spd);
-    void set_camera_node_path(const NodePath& path);
-    void set_camera_boon(const Vector3& pos);
-    void set_camera_predict(const float pre);
-    void set_camera_predict_speed(const float cps);
-    void set_invert_camera_movement(const bool inv);
-    void set_visual_collision_mask(uint32_t p_mask);
+#define GETTERSETTER_GD3D(VAR,TYPE) void GD3Dtopdown::set_##VAR##(const TYPE##& set);\
+                                            TYPE GD3Dtopdown::get_##VAR##() const
+    GETTERSETTER_GD3D(mouse_sensitivity, float);
+    GETTERSETTER_GD3D(walk_speed, float);
+    GETTERSETTER_GD3D(sprint_speed, float);
+    GETTERSETTER_GD3D(camera_node_path, NodePath);
+    GETTERSETTER_GD3D(invert_camera_movement, bool);
+    GETTERSETTER_GD3D(camera_boon, Vector3);
+    GETTERSETTER_GD3D(camera_predict, float);
+    GETTERSETTER_GD3D(camera_predict_speed, float);
+#undef GETTERSETTER_GD3D
 
-    float get_mouse_sensitivity() const;
-    float get_walk_speed() const;
-    float get_sprint_speed() const;
+    void set_visual_collision_mask(uint32_t p_mask);
+    
     Vector3 get_lookat_position() const;
-    NodePath get_camera_node_path() const;
-    Vector3 get_camera_boon() const;
-    float get_camera_predict() const;
-    float get_camera_predict_speed() const;
-    bool get_invert_camera_movement() const;
     Node3D* get_aim_node()const;
     uint32_t get_visual_collision_mask() const;
   
