@@ -17,9 +17,10 @@ albedo_color = Color(0.176471, 0.756863, 0.235294, 1)
 material = SubResource("StandardMaterial3D_0irbw")
 size = Vector3(0.1, 0.1, 2)
 
-[node name="Gd3Dtopdown" type="GD3Dtopdown"]
+[node name="Gd3Dtopdown" type="GD3Dtd_character"]
 invert_camera_movement = true
 camera_predict_speed = 10.0
+interiors_collision_mask = 0
 velocity = Vector3(0, -981.453, 0)
 script = ExtResource("1_xkpta")
 

@@ -5,7 +5,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "GD3Dtopdown.hpp"
+#include "GD3Dtd_character.hpp"
 #include "GD3Dvisual_obstacle.hpp"
 #include "GD3Dinterior_area.hpp"
 
@@ -18,7 +18,7 @@ void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
 		return;
 	}
 
-    ClassDB::register_class<GD3Dtopdown>();
+    ClassDB::register_class<GD3Dtd_character>();
     ClassDB::register_class<GD3Dvisual_obstacle>();
     ClassDB::register_class<GD3Dinterior_area>();
 

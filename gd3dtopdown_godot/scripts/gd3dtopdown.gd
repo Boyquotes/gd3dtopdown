@@ -1,4 +1,4 @@
-extends GD3Dtopdown
+extends GD3Dtd_character
 func _ready():
 	_ready_handle()
 func _input(event):

@@ -1,8 +1,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#ifndef GD3DTOPDOWN
-#define GD3DTOPDOWN
+#ifndef GD3DTD_CHARACTER
+#define GD3DTD_CHARACTER
 
 #include <godot_cpp/core/binder_common.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
@@ -36,18 +36,19 @@
 #include "GD3Dinterior_area.hpp"
 
 using namespace godot;
-class GD3Dtopdown : public CharacterBody3D {
-    
 
-    GDCLASS(GD3Dtopdown, CharacterBody3D);
+class GD3Dtd_character : public CharacterBody3D {
 
-    GD3Dtopdown();
-    ~GD3Dtopdown();
+
+    GDCLASS(GD3Dtd_character, CharacterBody3D);
+
+    GD3Dtd_character();
+    ~GD3Dtd_character();
 protected:
     static void _bind_methods();
-    
+
 private:
-   
+
     bool initialized;
     //Singletons
     Input* input;
@@ -61,7 +62,7 @@ private:
     float walk_speed = 5.0f;
     float sprint_speed = 10.0f;
 
-//Aiming and camera properties
+    //Aiming and camera properties
     bool is_aiming;
     Vector3 lookat_position;
     NodePath camera_node_path;
@@ -73,48 +74,45 @@ private:
     bool invert_camera_movement;
     Node3D* old_aim_node;
 
-//Visual obstacles
+    //Visual obstacles
     Area3D* interiors_collision_area;
-    TypedArray<RID> interior_area_rayexcludes = {};
+    uint32_t interiors_collision_mask;
 
     uint32_t visual_collision_mask;
-    TypedArray<RID>  visual_obstacle_rayexcludes = {};
-    Area3D* visual_obstacle_collision_area;
-
-    TypedArray<RID> all_rayexcludes = {};
-
+    TypedArray<RID>  visual_rayexcludes = {};
+    Area3D* visual_collision_area;
 
 public:
 
-    virtual bool _is_initialized()  const ;
-    virtual bool _initialize() ;
-    virtual void _uninitialize() ;
+    virtual bool _is_initialized()  const;
+    virtual bool _initialize();
+    virtual void _uninitialize();
 
     virtual void _ready() override;
     virtual void _input(const Ref<InputEvent>& p_event) override;
     virtual void _physics_process(double delta) override;
-   
-    
+
+
 #if defined(DEBUG_ENABLED)
     void _ready_handle();
     void _physics_process_handle(double delta);
     void _input_handle(const Ref<InputEvent>& p_event);
 #endif
-   
+
     //Other functions
     void handle_aim_node(Node3D* nd);
 
     //Signals
-    void enter_visual_obstacle_event(Variant body);
-    void exit_visual_obstacle_event(Variant body);
+    void enter_visual_event(Variant body);
+    void exit_visual_event(Variant body);
 
     void enter_interior_event(Variant area);
     void exit_interior_event(Variant area);
-    
-    
+
+
     //Getters and setters
-#define GETTERSETTER_GD3D(VAR,TYPE) void GD3Dtopdown::set_##VAR##(const TYPE##& set);\
-                                            TYPE GD3Dtopdown::get_##VAR##() const
+#define GETTERSETTER_GD3D(VAR,TYPE) void GD3Dtd_character::set_##VAR##(const TYPE##& set);\
+                                            TYPE GD3Dtd_character::get_##VAR##() const
     GETTERSETTER_GD3D(mouse_sensitivity, float);
     GETTERSETTER_GD3D(walk_speed, float);
     GETTERSETTER_GD3D(sprint_speed, float);
@@ -126,10 +124,12 @@ public:
 #undef GETTERSETTER_GD3D
 
     void set_visual_collision_mask(uint32_t p_mask);
-    
+    void set_interiors_collision_mask(uint32_t p_mask);
+
     Vector3 get_lookat_position() const;
     Node3D* get_aim_node()const;
     uint32_t get_visual_collision_mask() const;
-  
+    uint32_t get_interiors_collision_mask() const;
+
 };
 #endif 

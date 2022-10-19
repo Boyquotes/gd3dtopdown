@@ -1,0 +1,74 @@
+[gd_scene load_steps=10 format=3 uid="uid://cynqy70o8xudk"]
+
+[ext_resource type="PackedScene" uid="uid://bu76lxvtlxjrg" path="res://scenes/gd3dtopdown.tscn" id="2_cfafv"]
+[ext_resource type="PackedScene" uid="uid://do5mqn5hhj26f" path="res://scenes/buildings/house.tscn" id="3_ypaos"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mlj0e"]
+
+[sub_resource type="Sky" id="Sky_ymvgo"]
+sky_material = SubResource("ProceduralSkyMaterial_mlj0e")
+
+[sub_resource type="Environment" id="Environment_14mf4"]
+background_mode = 2
+background_energy_multiplier = 3.35
+sky = SubResource("Sky_ymvgo")
+ambient_light_source = 3
+ambient_light_color = Color(0.435294, 0.341176, 0.372549, 1)
+ambient_light_energy = 0.33
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_3hyu3"]
+size = Vector3(26, 1, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xlmck"]
+size = Vector3(26, 1, 20)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_nycgp"]
+height = 10.0
+radius = 2.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_f3l8c"]
+top_radius = 2.0
+bottom_radius = 2.0
+height = 10.0
+
+[node name="MainScene" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_14mf4")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
+transform = Transform3D(-0.0778094, -0.918254, -0.388271, -0.678292, -0.236664, 0.695636, -0.730661, 0.317488, -0.60443, 0, 28.8264, 0)
+light_color = Color(0.352941, 0.352941, 0.352941, 1)
+light_energy = 0.47
+
+[node name="Camera3d" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.24536, 8.79923)
+
+[node name="house" parent="." instance=ExtResource("3_ypaos")]
+transform = Transform3D(-0.279728, 0, -0.960079, 0, 1, 0, 0.960079, 0, -0.279728, 21.885, 0.5, -16.6516)
+
+[node name="Gd3Dtopdown" parent="." instance=ExtResource("2_cfafv")]
+camera_node_path = NodePath("../Camera3d")
+interiors_collision_mask = 2
+visual_collision_mask = 2147483650
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.572, 0, 0)
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(14.4438, 0, 0, 0, 1, 0, 0, 0, 11.5976, 0, 0, 0)
+collision_layer = 3
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_3hyu3")
+
+[node name="MeshInstance3d" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.184622, 0, 0)
+mesh = SubResource("BoxMesh_xlmck")
+
+[node name="Cylinder" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.36168, 4.66307, -3.00726)
+
+[node name="CollisionShape3d" type="CollisionShape3D" parent="Cylinder"]
+shape = SubResource("CylinderShape3D_nycgp")
+
+[node name="MeshInstance3d" type="MeshInstance3D" parent="Cylinder"]
+mesh = SubResource("CylinderMesh_f3l8c")

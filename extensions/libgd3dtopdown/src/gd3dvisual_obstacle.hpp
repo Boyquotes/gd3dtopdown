@@ -21,12 +21,15 @@ class GD3Dvisual_obstacle : public StaticBody3D
 
 protected:
 	static void _bind_methods();
-
+private:
+	bool auto_invisible = false;
 public:
 
-	virtual void emit_visual_disappear();
-	virtual void emit_visual_appear();
+	virtual void on_enter_obstacle();
+	virtual void on_exit_obstacle();
 
+	bool get_auto_invisible() const;
+	void set_auto_invisible(const bool var);
 };
 
 #endif 

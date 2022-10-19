@@ -9,7 +9,9 @@
 #include <godot_cpp/classes/area3d.hpp>
 
 #include <godot_cpp/classes/physics_body3d.hpp>
+#include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/node3d.hpp>
 
 using namespace godot;
 
@@ -24,17 +26,23 @@ protected:
 
 private:
 
+	bool on_enter_ignore = true;
+	bool on_enter_unignore = true;
+	bool on_enter_visible = false;
+	bool on_enter_invisible = false;
+
 	Node* enter_ignore_node;
 	Node* enter_unignore_node;
-	Node* enter_visible_node;
-	Node* enter_invisible_node;
+	Node3D* enter_visible_node;
+	Node3D* enter_invisible_node;
 
-	TypedArray<PhysicsBody3D> enter_ignore_subnodes;
-	TypedArray<PhysicsBody3D> enter_unignore_subnodes;
-	TypedArray<RID> enter_ignore_subnodes_as_rid;
-	TypedArray<RID> enter_unignore_subnodes_as_rid;
-	TypedArray<Node> enter_visible_subnodes;
-	TypedArray<Node> enter_invisible_subnodes;
+	TypedArray<PhysicsBody3D> enter_ignore_bodies;
+	TypedArray<PhysicsBody3D> enter_unignore_bodies;
+	TypedArray<CollisionShape3D> enter_ignore_shapes;
+	TypedArray<CollisionShape3D> enter_unignore_shapes;
+	TypedArray<RID> enter_ignore_bodies_as_rid;
+	TypedArray<RID> enter_unignore_bodies_as_rid;
+
 
 	NodePath enter_ignore_node_path;
 	NodePath enter_unignore_node_path;
@@ -49,17 +57,33 @@ public:
 	void on_exit();
 
 
-	TypedArray<PhysicsBody3D> get_enter_ignore_subnodes();
-	TypedArray<PhysicsBody3D> get_enter_unignore_subnodes();
-	TypedArray<RID> get_enter_ignore_subnodes_as_rid();
-	TypedArray<RID> get_enter_unignore_subnodes_as_rid()  ;
-	TypedArray<Node> get_enter_visible_subnodes();
-	TypedArray<Node> get_enter_invisible_subnodes();
+	TypedArray<PhysicsBody3D> get_enter_ignore_bodies();
+	TypedArray<PhysicsBody3D> get_enter_unignore_bodies();
+	TypedArray<CollisionShape3D> get_enter_ignore_shapes();
+	TypedArray<CollisionShape3D> get_enter_unignore_shapes();
+	TypedArray<RID> get_enter_ignore_bodies_as_rid();
+	TypedArray<RID> get_enter_unignore_bodies_as_rid();
+
+	Node* get_enter_ignore_node();
+	Node* get_enter_unignore_node();
+	Node3D* get_enter_visible_node();
+	Node3D* get_enter_invisible_node();
+
+
+	bool get_on_enter_ignore() const;
+	bool get_on_enter_unignore() const;
+	bool get_on_enter_visible() const;
+	bool get_on_enter_invisible() const;
 
 	NodePath get_enter_ignore_node_path() const;
 	NodePath get_enter_unignore_node_path() const;
 	NodePath get_enter_visible_node_path() const;
 	NodePath get_enter_invisible_node_path() const;
+
+	void set_on_enter_ignore(const bool var);
+	void set_on_enter_unignore(const bool var);
+	void set_on_enter_visible(const bool var);
+	void set_on_enter_invisible(const bool var );
 
 	void set_enter_ignore_node_path(const NodePath& path);
 	void set_enter_unignore_node_path(const NodePath& path);
