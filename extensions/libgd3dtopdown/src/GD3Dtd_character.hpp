@@ -72,6 +72,8 @@ private:
     float camera_predict_speed = 15;
     Vector3 camera_follow_position;
     bool invert_camera_movement;
+
+    uint32_t aim_collision_mask;
     Node3D* old_aim_node;
 
     //Visual obstacles
@@ -121,15 +123,15 @@ public:
     GETTERSETTER_GD3D(camera_boon, Vector3);
     GETTERSETTER_GD3D(camera_predict, float);
     GETTERSETTER_GD3D(camera_predict_speed, float);
+    GETTERSETTER_GD3D(interiors_collision_mask, uint32_t);
+    GETTERSETTER_GD3D(aim_collision_mask, uint32_t);
 #undef GETTERSETTER_GD3D
 
+    uint32_t get_visual_collision_mask() const;
     void set_visual_collision_mask(uint32_t p_mask);
-    void set_interiors_collision_mask(uint32_t p_mask);
 
     Vector3 get_lookat_position() const;
     Node3D* get_aim_node()const;
-    uint32_t get_visual_collision_mask() const;
-    uint32_t get_interiors_collision_mask() const;
 
 };
 #endif 

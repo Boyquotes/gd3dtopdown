@@ -17,7 +17,7 @@ void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
     {
 		return;
 	}
-
+    
     ClassDB::register_class<GD3Dtd_character>();
     ClassDB::register_class<GD3Dvisual_obstacle>();
     ClassDB::register_class<GD3Dinterior_area>();

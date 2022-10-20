@@ -244,6 +244,7 @@ shape = SubResource("BoxShape3D_b0n0k")
 
 [node name="StaticBody3D9" type="GD3Dvisual_obstacle" parent="TopArea"]
 transform = Transform3D(-0.25, 0, -1.30337e-06, 0, 1, 0, 8.14603e-08, 0, -4, -8.25, 4, -4)
+collision_layer = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TopArea/StaticBody3D9"]
 shape = SubResource("ConvexPolygonShape3D_wufll")
@@ -254,6 +255,7 @@ skeleton = NodePath("")
 
 [node name="StaticBody3D8" type="GD3Dvisual_obstacle" parent="TopArea"]
 transform = Transform3D(0.25, 0, 0, 0, 1, 0, 0, 0, 4, -0.25, 4, 20)
+collision_layer = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TopArea/StaticBody3D8"]
 shape = SubResource("ConvexPolygonShape3D_ot23f")
@@ -264,6 +266,7 @@ skeleton = NodePath("")
 
 [node name="StaticBody3D7" type="GD3Dvisual_obstacle" parent="TopArea"]
 transform = Transform3D(0, 0, 4, 0, 1, 0, -0.25, 0, 0, -0.25, 4, -4)
+collision_layer = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TopArea/StaticBody3D7"]
 shape = SubResource("ConvexPolygonShape3D_bqbw4")
@@ -274,6 +277,7 @@ skeleton = NodePath("")
 
 [node name="StaticBody3D6" type="GD3Dvisual_obstacle" parent="TopArea"]
 transform = Transform3D(1.3411e-07, 0, -4, 0, 1, 0, 0.25, 0, 2.14577e-06, -8.25, 4, 20)
+collision_layer = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TopArea/StaticBody3D6"]
 shape = SubResource("ConvexPolygonShape3D_pj0x5")
@@ -285,6 +289,7 @@ skeleton = NodePath("")
 
 [node name="StaticBody3D10" type="GD3Dvisual_obstacle" parent="TopArea"]
 transform = Transform3D(1.49012e-07, -1, 0, 0.25, 5.96046e-07, 0, 0, 0, 4, -0.25, 4, 20)
+collision_layer = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TopArea/StaticBody3D10"]
 shape = SubResource("ConvexPolygonShape3D_lgubl")

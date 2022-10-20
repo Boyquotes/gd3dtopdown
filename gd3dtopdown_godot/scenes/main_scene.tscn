@@ -51,6 +51,7 @@ transform = Transform3D(-0.279728, 0, -0.960079, 0, 1, 0, 0.960079, 0, -0.279728
 camera_node_path = NodePath("../Camera3d")
 interiors_collision_mask = 2
 visual_collision_mask = 2147483650
+aim_collision_mask = 5
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.572, 0, 0)
 
 [node name="Floor" type="StaticBody3D" parent="."]

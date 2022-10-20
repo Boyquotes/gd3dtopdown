@@ -41,6 +41,7 @@ void GD3Dtd_character::_bind_methods()
     GETSET_GD3D(camera_predict_speed);
     GETSET_GD3D(interiors_collision_mask);
     GETSET_GD3D(visual_collision_mask);
+    GETSET_GD3D(aim_collision_mask);
 
     ClassDB::bind_method(D_METHOD("get_lookat_position"), &GD3Dtd_character::get_lookat_position);
     ClassDB::bind_method(D_METHOD("get_aim_node"), &GD3Dtd_character::get_aim_node);
@@ -61,6 +62,7 @@ void GD3Dtd_character::_bind_methods()
 
     ADD_PROPERTY(PropertyInfo(Variant::INT, "interiors_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_interiors_collision_mask", "get_interiors_collision_mask");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "visual_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_visual_collision_mask", "get_visual_collision_mask");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "aim_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_aim_collision_mask", "get_aim_collision_mask");
 }
 #undef GETSET_GD3D
 #undef ADDPROP_GD3D
@@ -97,6 +99,15 @@ bool GD3Dtd_character::_initialize()
         CHECKNULL_ERRGD3D(interiors_collision_area);
         CHECKNULL_ERRGD3D(interiors_collision_col_shp);
         CHECKNULL_ERRGD3D(interiors_collision_box);
+
+        if((visual_collision_mask & aim_collision_mask) != 0)
+        {
+            WARN_PRINT("Visual_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
+        }
+        if ((interiors_collision_mask & aim_collision_mask) != 0)
+        {
+            WARN_PRINT("interiors_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
+        }
 
         w3d = get_world_3d();
         if (!w3d.is_valid())
@@ -204,11 +215,9 @@ void GD3Dtd_character::_ready()
 
 #if defined(DEBUG_ENABLED)
     if (Engine::get_singleton()->is_editor_hint()) return;
-    WARN_PRINT_ONCE("Ready function called");
 }
 void GD3Dtd_character::_ready_handle()
 {
-    WARN_PRINT_ONCE("Ready handle function called");
 #endif
     _initialize();
 }
@@ -217,11 +226,9 @@ void GD3Dtd_character::_input(const Ref<InputEvent>& p_event)
 {
 #if defined(DEBUG_ENABLED)
     if (Engine::get_singleton()->is_editor_hint()) return;
-    WARN_PRINT_ONCE("Input function called");
 }
 void GD3Dtd_character::_input_handle(const Ref<InputEvent>& p_event)
 {
-    WARN_PRINT_ONCE("Input handle function called");
 #endif
 
     if (!initialized) return;
@@ -298,7 +305,7 @@ void GD3Dtd_character::_physics_process_handle(double delta)
         Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
             camera->project_ray_origin(mouse_pos),
             camera->project_ray_normal(mouse_pos) * 1000,
-            4294967295U, visual_rayexcludes);
+            aim_collision_mask, visual_rayexcludes);
 
         Dictionary ray_dict = ph_server->space_get_direct_state(
             w3d->get_space())->intersect_ray(ray);
@@ -388,13 +395,13 @@ void GD3Dtd_character::enter_interior_event(Variant area)
 {
     GD3Dinterior_area* in_area = cast_to<GD3Dinterior_area>(area);
     if (in_area == nullptr) return;
-    in_area->on_enter();
+    in_area->on_enter(aim_collision_mask);
 }
 void GD3Dtd_character::exit_interior_event(Variant area)
 {
     GD3Dinterior_area* in_area = cast_to<GD3Dinterior_area>(area);
     if (in_area == nullptr) return;
-    in_area->on_exit();
+    in_area->on_exit(aim_collision_mask);
 }
 
 //Setters and getters
@@ -408,6 +415,8 @@ GETTERSETTER_GD3D(invert_camera_movement, bool);
 GETTERSETTER_GD3D(camera_boon, Vector3);
 GETTERSETTER_GD3D(camera_predict, float);
 GETTERSETTER_GD3D(camera_predict_speed, float);
+GETTERSETTER_GD3D(aim_collision_mask, uint32_t);
+GETTERSETTER_GD3D(interiors_collision_mask, uint32_t);
 
 #undef GETTERSETTER_GD3D
 Vector3 GD3Dtd_character::get_lookat_position() const
@@ -435,25 +444,6 @@ uint32_t GD3Dtd_character::get_visual_collision_mask() const
     if (visual_collision_area != nullptr) return msk;
 
     msk = visual_collision_area->get_collision_mask();
-     }*/
-    return msk;
-}
-void GD3Dtd_character::set_interiors_collision_mask(uint32_t p_mask)
-{
-    interiors_collision_mask = p_mask;
-    /*Null checks in setter and getter couse editor to crash
-    if (interiors_collision_area == nullptr) return;
-
-    interiors_collision_area->set_collision_mask(p_mask);
-    return;*/
-}
-uint32_t GD3Dtd_character::get_interiors_collision_mask() const
-{
-    uint32_t msk = interiors_collision_mask;
-    /*
-    if (interiors_collision_area != nullptr) return msk;
-
-    msk = interiors_collision_area->get_collision_mask();
      }*/
     return msk;
 }

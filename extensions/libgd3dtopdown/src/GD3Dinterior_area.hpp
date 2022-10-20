@@ -9,7 +9,6 @@
 #include <godot_cpp/classes/area3d.hpp>
 
 #include <godot_cpp/classes/physics_body3d.hpp>
-#include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 
@@ -25,6 +24,8 @@ protected:
 	static void _bind_methods();
 
 private:
+	PackedInt32Array ignore_layer_array;
+	PackedInt32Array unignore_layer_array;
 
 	bool on_enter_ignore = true;
 	bool on_enter_unignore = true;
@@ -38,8 +39,6 @@ private:
 
 	TypedArray<PhysicsBody3D> enter_ignore_bodies;
 	TypedArray<PhysicsBody3D> enter_unignore_bodies;
-	TypedArray<CollisionShape3D> enter_ignore_shapes;
-	TypedArray<CollisionShape3D> enter_unignore_shapes;
 	TypedArray<RID> enter_ignore_bodies_as_rid;
 	TypedArray<RID> enter_unignore_bodies_as_rid;
 
@@ -53,14 +52,12 @@ public:
 	
 	bool initialize();
 	void uninitialize();
-	void on_enter();
-	void on_exit();
+	void on_enter(uint32_t ignoremask);
+	void on_exit(uint32_t ignoremask);
 
 
 	TypedArray<PhysicsBody3D> get_enter_ignore_bodies();
 	TypedArray<PhysicsBody3D> get_enter_unignore_bodies();
-	TypedArray<CollisionShape3D> get_enter_ignore_shapes();
-	TypedArray<CollisionShape3D> get_enter_unignore_shapes();
 	TypedArray<RID> get_enter_ignore_bodies_as_rid();
 	TypedArray<RID> get_enter_unignore_bodies_as_rid();
 

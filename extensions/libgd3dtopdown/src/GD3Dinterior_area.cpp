@@ -68,19 +68,6 @@ bool GD3Dinterior_area::initialize()
 
                 enter_ignore_bodies_as_rid.append(pb_child->get_rid());
 
-                TypedArray<Node> pb_children = pb_child->get_children();
-
-                if (pb_children.size() < 1) continue;
-
-                for (int64_t j = 0; j < pb_children.size(); j++)
-                {
-                    CollisionShape3D* cs_child = cast_to<CollisionShape3D>(pb_children[j]);
-
-                    if (cs_child == nullptr) continue;
-
-                    enter_ignore_shapes.append(cs_child);
-                }
-
             }
         }
     }
@@ -102,18 +89,6 @@ bool GD3Dinterior_area::initialize()
 
                 enter_unignore_bodies_as_rid.append(pb_child->get_rid());
 
-                TypedArray<Node> pb_children = pb_child->get_children();
-
-                if (pb_children.size() < 1) continue;
-
-                for (int64_t j = 0; j < pb_children.size(); j++)
-                {
-                    CollisionShape3D* cs_child = cast_to<CollisionShape3D>(pb_children[j]);
-                    
-                    if(cs_child == nullptr) continue;
-
-                    enter_unignore_shapes.append(cs_child);
-                }
             }
         }
     }
@@ -126,15 +101,12 @@ bool GD3Dinterior_area::initialize()
         enter_invisible_node = Object::cast_to<Node3D>(get_node<Node>(enter_invisible_node_path));
     }
     return true;
-    WARN_PRINT(String::num_int64(enter_ignore_shapes.size()));
 }
 
 void GD3Dinterior_area::uninitialize()
 {
     enter_ignore_bodies.clear();
     enter_unignore_bodies.clear();
-    enter_ignore_shapes.clear();
-    enter_unignore_shapes.clear();
     enter_ignore_bodies_as_rid.clear();
     enter_unignore_bodies_as_rid.clear();
 
@@ -143,29 +115,32 @@ void GD3Dinterior_area::uninitialize()
     enter_visible_node = nullptr;
     enter_invisible_node = nullptr;
 }
-void GD3Dinterior_area::on_enter()
+void GD3Dinterior_area::on_enter(uint32_t ignoremask)
 {
-    if(on_enter_ignore && enter_ignore_shapes.size()>0)
+    ignore_layer_array.clear();
+    if(on_enter_ignore && enter_ignore_bodies.size()>0)
     {
-        for (int64_t i = 0; i < enter_ignore_shapes.size(); i++)
+        for (int64_t i = 0; i < enter_ignore_bodies.size(); i++)
         {
-            CollisionShape3D* n_child = cast_to<CollisionShape3D>(enter_ignore_shapes[i]);
+            PhysicsBody3D* n_child = cast_to<PhysicsBody3D>(enter_ignore_bodies[i]);
            
             if (n_child == nullptr) continue;
-            WARN_PRINT("a");
-            n_child->call_deferred("set_disabled", true);
-
+            uint32_t msk = n_child->get_collision_layer();
+            ignore_layer_array.append(msk);
+            n_child->set_collision_layer((msk & ignoremask) ^ msk);
         }
     }
-    if (on_enter_unignore && enter_unignore_shapes.size() > 0)
+    unignore_layer_array.clear();
+    if (on_enter_unignore && enter_unignore_bodies.size() > 0)
     {
-        for (int64_t i = 0; i < enter_unignore_shapes.size(); i++)
+        for (int64_t i = 0; i < enter_unignore_bodies.size(); i++)
         {
-            CollisionShape3D* n_child = cast_to<CollisionShape3D>(enter_unignore_shapes[i]);
+            PhysicsBody3D* n_child = cast_to<PhysicsBody3D>(enter_unignore_bodies[i]);
 
             if (n_child == nullptr) continue;
-            n_child->call_deferred("set_disabled", false);
-
+            uint32_t msk = n_child->get_collision_layer();
+            unignore_layer_array.append(msk);
+            n_child->set_collision_layer(msk | ignoremask);
         }
     }
     if(on_enter_invisible && enter_invisible_node != nullptr)
@@ -180,28 +155,29 @@ void GD3Dinterior_area::on_enter()
     }
     emit_signal("entered_signal", get_rid(), this);
 }
-void GD3Dinterior_area::on_exit()
+void GD3Dinterior_area::on_exit(uint32_t ignoremask)
 {
-    
-
-    if (on_enter_ignore && enter_ignore_shapes.size() > 0)
+    int cter = 0;
+    if (on_enter_ignore && enter_ignore_bodies.size() > 0)
     {
-        for (int64_t i = 0; i < enter_ignore_shapes.size(); i++)
+        for (int64_t i = 0; i < enter_ignore_bodies.size(); i++)
         {
-            CollisionShape3D* n_child = cast_to<CollisionShape3D>(enter_ignore_shapes[i]);
+            PhysicsBody3D* n_child = cast_to<PhysicsBody3D>(enter_ignore_bodies[i]);
 
             if (n_child == nullptr) continue;
-            n_child->call_deferred("set_disabled", false);
+            n_child->set_collision_layer(ignore_layer_array[cter]);
+            cter++;
         }
     }
-    if (on_enter_unignore && enter_unignore_shapes.size() > 0)
+    cter = 0;
+    if (on_enter_unignore && enter_unignore_bodies.size() > 0)
     {
-        for (int64_t i = 0; i < enter_unignore_shapes.size(); i++)
+        for (int64_t i = 0; i < enter_unignore_bodies.size(); i++)
         {
-            CollisionShape3D* n_child = cast_to<CollisionShape3D>(enter_unignore_shapes[i]);
-
+            PhysicsBody3D* n_child = cast_to<PhysicsBody3D>(enter_unignore_bodies[i]);
             if (n_child == nullptr) continue;
-            n_child->call_deferred("set_disabled", true);
+            n_child->set_collision_layer(unignore_layer_array[cter]);
+            cter++;
         }
     }
     if (on_enter_visible && enter_visible_node != nullptr)
@@ -252,8 +228,6 @@ Node3D* GD3Dinterior_area::get_enter_invisible_node() { return enter_invisible_n
 
 TypedArray<PhysicsBody3D> GD3Dinterior_area::get_enter_ignore_bodies() { return enter_ignore_bodies; }
 TypedArray<PhysicsBody3D> GD3Dinterior_area::get_enter_unignore_bodies() { return enter_unignore_bodies; }
-TypedArray<CollisionShape3D> GD3Dinterior_area::get_enter_ignore_shapes() { return enter_unignore_shapes; }
-TypedArray<CollisionShape3D> GD3Dinterior_area::get_enter_unignore_shapes() { return enter_ignore_shapes; }
 TypedArray<RID> GD3Dinterior_area::get_enter_ignore_bodies_as_rid() { return enter_ignore_bodies_as_rid; }
 TypedArray<RID> GD3Dinterior_area::get_enter_unignore_bodies_as_rid() { return enter_unignore_bodies_as_rid; }
 
