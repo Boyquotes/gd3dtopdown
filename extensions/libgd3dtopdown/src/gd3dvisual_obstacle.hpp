@@ -22,14 +22,18 @@ class GD3Dvisual_obstacle : public StaticBody3D
 protected:
 	static void _bind_methods();
 private:
+	uint32_t collision_layer;
 	bool auto_invisible = false;
+	bool auto_ignore = false;
 public:
 
-	virtual void on_enter_obstacle();
+	virtual void on_enter_obstacle(uint32_t ignoremask);
 	virtual void on_exit_obstacle();
 
 	bool get_auto_invisible() const;
 	void set_auto_invisible(const bool var);
+	bool get_auto_ignore() const;
+	void set_auto_ignore(const bool var);
 };
 
 #endif 

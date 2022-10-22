@@ -24,6 +24,8 @@ protected:
 	static void _bind_methods();
 
 private:
+	bool _initialized;
+	
 	PackedInt32Array ignore_layer_array;
 	PackedInt32Array unignore_layer_array;
 
@@ -39,9 +41,6 @@ private:
 
 	TypedArray<PhysicsBody3D> enter_ignore_bodies;
 	TypedArray<PhysicsBody3D> enter_unignore_bodies;
-	TypedArray<RID> enter_ignore_bodies_as_rid;
-	TypedArray<RID> enter_unignore_bodies_as_rid;
-
 
 	NodePath enter_ignore_node_path;
 	NodePath enter_unignore_node_path;
@@ -52,20 +51,16 @@ public:
 	
 	bool initialize();
 	void uninitialize();
-	void on_enter(uint32_t ignoremask);
-	void on_exit(uint32_t ignoremask);
-
+	void on_enter_area(uint32_t ignoremask);
+	void on_exit_area();
 
 	TypedArray<PhysicsBody3D> get_enter_ignore_bodies();
 	TypedArray<PhysicsBody3D> get_enter_unignore_bodies();
-	TypedArray<RID> get_enter_ignore_bodies_as_rid();
-	TypedArray<RID> get_enter_unignore_bodies_as_rid();
 
 	Node* get_enter_ignore_node();
 	Node* get_enter_unignore_node();
 	Node3D* get_enter_visible_node();
 	Node3D* get_enter_invisible_node();
-
 
 	bool get_on_enter_ignore() const;
 	bool get_on_enter_unignore() const;

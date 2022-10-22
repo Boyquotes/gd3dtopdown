@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://cynqy70o8xudk"]
 
 [ext_resource type="PackedScene" uid="uid://bu76lxvtlxjrg" path="res://scenes/gd3dtopdown.tscn" id="2_cfafv"]
-[ext_resource type="PackedScene" uid="uid://do5mqn5hhj26f" path="res://scenes/buildings/house.tscn" id="3_ypaos"]
+[ext_resource type="PackedScene" uid="uid://deatvd455ffyp" path="res://scenes/buildings/house.tscn" id="3_ypaos"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mlj0e"]
 
@@ -45,18 +45,20 @@ light_energy = 0.47
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.24536, 8.79923)
 
 [node name="house" parent="." instance=ExtResource("3_ypaos")]
-transform = Transform3D(-0.279728, 0, -0.960079, 0, 1, 0, 0.960079, 0, -0.279728, 21.885, 0.5, -16.6516)
+transform = Transform3D(-0.279728, 0, -0.960079, 0, 1, 0, 0.960079, 0, -0.279728, 21.885, 0.5, -17.6008)
 
 [node name="Gd3Dtopdown" parent="." instance=ExtResource("2_cfafv")]
+turn_speed = 0.2
 camera_node_path = NodePath("../Camera3d")
-interiors_collision_mask = 2
-visual_collision_mask = 2147483650
-aim_collision_mask = 5
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.572, 0, 0)
+interiors_collision_mask = 536870912
+visual_collision_mask = 2415919104
+aim_collision_mask = 3087007744
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.572, 1.93578, 0)
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(14.4438, 0, 0, 0, 1, 0, 0, 0, 11.5976, 0, 0, 0)
-collision_layer = 3
+collision_layer = 5
+collision_mask = 0
 
 [node name="CollisionShape3d" type="CollisionShape3D" parent="Floor"]
 shape = SubResource("BoxShape3D_3hyu3")

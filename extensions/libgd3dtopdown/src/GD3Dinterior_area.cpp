@@ -2,6 +2,7 @@
 
 GD3Dinterior_area::GD3Dinterior_area()
 {
+    uninitialize();
 }
 
 GD3Dinterior_area::~GD3Dinterior_area()
@@ -15,13 +16,11 @@ void GD3Dinterior_area::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("initialize"), &GD3Dinterior_area::initialize);
     ClassDB::bind_method(D_METHOD("uninitialize"), &GD3Dinterior_area::uninitialize);
-    ClassDB::bind_method(D_METHOD("on_enter"), &GD3Dinterior_area::on_enter);
-    ClassDB::bind_method(D_METHOD("on_exit"), &GD3Dinterior_area::on_exit);
+    ClassDB::bind_method(D_METHOD("on_enter_area"), &GD3Dinterior_area::on_enter_area);
+    ClassDB::bind_method(D_METHOD("on_exit_area"), &GD3Dinterior_area::on_exit_area);
 
     ClassDB::bind_method(D_METHOD("get_enter_ignore_bodies"), &GD3Dinterior_area::get_enter_ignore_bodies);
     ClassDB::bind_method(D_METHOD("get_enter_unignore_bodies"), &GD3Dinterior_area::get_enter_unignore_bodies);
-    ClassDB::bind_method(D_METHOD("get_enter_ignore_bodies_as_rid"), &GD3Dinterior_area::get_enter_ignore_bodies);
-    ClassDB::bind_method(D_METHOD("get_enter_unignore_bodies_as_rid"), &GD3Dinterior_area::get_enter_unignore_bodies);
 
     GETSET_GD3D(on_enter_ignore);
     GETSET_GD3D(on_enter_unignore);
@@ -56,42 +55,15 @@ bool GD3Dinterior_area::initialize()
     {
         enter_ignore_node = Object::cast_to<Node>(get_node<Node>(enter_ignore_node_path));
     }
-    if(enter_ignore_node != nullptr)
-    {
-        enter_ignore_bodies = get_all_sub_physics_bodies(enter_ignore_node);
-        if(enter_ignore_bodies.size()>0)
-        {
-            for (int64_t i = 0; i < enter_ignore_bodies.size(); i++)
-            {
-                PhysicsBody3D* pb_child = cast_to<PhysicsBody3D>(enter_ignore_bodies[i]);
-                if (pb_child == nullptr) continue;
-
-                enter_ignore_bodies_as_rid.append(pb_child->get_rid());
-
-            }
-        }
-    }
+    enter_ignore_bodies.append_array( get_all_sub_physics_bodies(enter_ignore_node));
+    
     if(!enter_unignore_node_path.is_empty())
     {
         enter_unignore_node = Object::cast_to<Node>(get_node<Node>(enter_unignore_node_path));
     }
-    if(enter_unignore_node != nullptr)
-    {
-        enter_unignore_bodies = get_all_sub_physics_bodies(enter_unignore_node);
-        if (enter_unignore_bodies.size() > 0)
-        {
-            for (int64_t i = 0; i < enter_unignore_bodies.size(); i++)
-            {
-
-                PhysicsBody3D* pb_child = cast_to<PhysicsBody3D>(enter_unignore_bodies[i]);
-
-                if (pb_child == nullptr) continue;
-
-                enter_unignore_bodies_as_rid.append(pb_child->get_rid());
-
-            }
-        }
-    }
+    
+    enter_unignore_bodies.append_array(get_all_sub_physics_bodies(enter_unignore_node));
+   
     if(!enter_visible_node_path.is_empty())
     {
         enter_visible_node = Object::cast_to<Node3D>(get_node<Node>(enter_visible_node_path));
@@ -100,36 +72,43 @@ bool GD3Dinterior_area::initialize()
     {
         enter_invisible_node = Object::cast_to<Node3D>(get_node<Node>(enter_invisible_node_path));
     }
+
+    _initialized = true;
+
     return true;
 }
 
 void GD3Dinterior_area::uninitialize()
 {
+    
     enter_ignore_bodies.clear();
     enter_unignore_bodies.clear();
-    enter_ignore_bodies_as_rid.clear();
-    enter_unignore_bodies_as_rid.clear();
 
     enter_ignore_node = nullptr;
     enter_unignore_node = nullptr;
     enter_visible_node = nullptr;
     enter_invisible_node = nullptr;
+    _initialized = false;
 }
-void GD3Dinterior_area::on_enter(uint32_t ignoremask)
+void GD3Dinterior_area::on_enter_area(uint32_t ignoremask)
 {
+    if (!_initialized) return;
     ignore_layer_array.clear();
-    if(on_enter_ignore && enter_ignore_bodies.size()>0)
+    if (on_enter_ignore && enter_ignore_bodies.size()>0)
     {
         for (int64_t i = 0; i < enter_ignore_bodies.size(); i++)
         {
             PhysicsBody3D* n_child = cast_to<PhysicsBody3D>(enter_ignore_bodies[i]);
            
             if (n_child == nullptr) continue;
+
             uint32_t msk = n_child->get_collision_layer();
             ignore_layer_array.append(msk);
             n_child->set_collision_layer((msk & ignoremask) ^ msk);
+            
         }
     }
+
     unignore_layer_array.clear();
     if (on_enter_unignore && enter_unignore_bodies.size() > 0)
     {
@@ -138,25 +117,27 @@ void GD3Dinterior_area::on_enter(uint32_t ignoremask)
             PhysicsBody3D* n_child = cast_to<PhysicsBody3D>(enter_unignore_bodies[i]);
 
             if (n_child == nullptr) continue;
+
             uint32_t msk = n_child->get_collision_layer();
             unignore_layer_array.append(msk);
             n_child->set_collision_layer(msk | ignoremask);
         }
     }
+
     if(on_enter_invisible && enter_invisible_node != nullptr)
     {
         enter_invisible_node->set_visible(false);
-        WARN_PRINT("b");
-
     }
+
     if (on_enter_visible && enter_visible_node != nullptr)
     {
         enter_visible_node->set_visible(true);
     }
     emit_signal("entered_signal", get_rid(), this);
 }
-void GD3Dinterior_area::on_exit(uint32_t ignoremask)
+void GD3Dinterior_area::on_exit_area()
 {
+    if (!_initialized) return;
     int cter = 0;
     if (on_enter_ignore && enter_ignore_bodies.size() > 0)
     {
@@ -193,8 +174,13 @@ void GD3Dinterior_area::on_exit(uint32_t ignoremask)
 //Other functions
 TypedArray<PhysicsBody3D> GD3Dinterior_area::get_all_sub_physics_bodies(Node* nd)
 {
+   
     TypedArray<PhysicsBody3D> pb_array = {};
+
+    if (nd == nullptr) return pb_array;
+    
     TypedArray<Node> nd_array = get_all_sub_nodes(nd);
+
     if (nd_array.size() < 1) return  pb_array;
     for (int64_t i = 0; i < nd_array.size(); i++)
     {
@@ -208,8 +194,11 @@ TypedArray<PhysicsBody3D> GD3Dinterior_area::get_all_sub_physics_bodies(Node* nd
 }
 TypedArray<Node> GD3Dinterior_area::get_all_sub_nodes( Node * nd)
 {
-    TypedArray<Node> cols = nd->get_children();
     TypedArray<Node> n_arr = {};
+    if (nd == nullptr) return n_arr;
+
+    TypedArray<Node> cols = nd->get_children();
+
     if (cols.size() < 1) return n_arr;
     for (int64_t i = 0; i < cols.size(); i++)
     {
@@ -228,8 +217,6 @@ Node3D* GD3Dinterior_area::get_enter_invisible_node() { return enter_invisible_n
 
 TypedArray<PhysicsBody3D> GD3Dinterior_area::get_enter_ignore_bodies() { return enter_ignore_bodies; }
 TypedArray<PhysicsBody3D> GD3Dinterior_area::get_enter_unignore_bodies() { return enter_unignore_bodies; }
-TypedArray<RID> GD3Dinterior_area::get_enter_ignore_bodies_as_rid() { return enter_ignore_bodies_as_rid; }
-TypedArray<RID> GD3Dinterior_area::get_enter_unignore_bodies_as_rid() { return enter_unignore_bodies_as_rid; }
 
 bool GD3Dinterior_area::get_on_enter_ignore() const { return on_enter_ignore; }
 bool GD3Dinterior_area::get_on_enter_unignore()  const{ return on_enter_unignore; }

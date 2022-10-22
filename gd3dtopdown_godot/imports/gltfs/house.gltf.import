@@ -1,0 +1,76 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://cvb28b6g1qlq5"
+path="res://.godot/imported/house.gltf-67809ce6f292e4509d86a364bde716ee.scn"
+
+[deps]
+
+source_file="res://imports/gltfs/house.gltf"
+dest_files=["res://.godot/imported/house.gltf-67809ce6f292e4509d86a364bde716ee.scn"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="Scene Root"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+import_script/path=""
+_subresources={
+"meshes": {
+"house_Cube018": {
+"generate/shadow_meshes": 2
+}
+},
+"nodes": {
+"PATH:Floor": {
+"generate/physics": true
+},
+"PATH:Roof": {
+"generate/physics": true
+},
+"PATH:Staris": {
+"generate/physics": true,
+"physics/shape_type": 1
+},
+"PATH:Wall_001": {
+"generate/physics": true
+},
+"PATH:Wall_001001": {
+"generate/physics": true,
+"physics/shape_type": 1
+},
+"PATH:Wall_002": {
+"generate/physics": true,
+"physics/shape_type": 1
+},
+"PATH:Wall_002001": {
+"generate/physics": true,
+"physics/shape_type": 1
+},
+"PATH:Wall_003": {
+"generate/physics": true
+},
+"PATH:Wall_003001": {
+"generate/physics": true,
+"physics/shape_type": 1
+},
+"PATH:Wall_004": {
+"generate/physics": true
+},
+"PATH:Wall_004001": {
+"generate/physics": true,
+"physics/shape_type": 2
+}
+}
+}
