@@ -75,6 +75,8 @@ private:
     Node3D* old_aim_node;
 
     //Visual obstacles
+    Vector3 interiors_collision_box_size = Vector3(0.1f,0.1f,0.1f);
+    Vector3 interiors_collision_box_centre = Vector3(0,1,0);
     Area3D* interiors_collision_area;
     uint32_t interiors_collision_mask = 0;
     uint32_t visual_collision_mask = 0;
@@ -116,16 +118,14 @@ public:
     void enter_interior_event(Variant area);
     void exit_interior_event(Variant area);
 
-
-
     //Getters and setters
 
     Vector3 get_character_forward() const;
     Vector3 get_character_direction() const;
     Vector3 get_character_direction_plane() const;
     float get_character_movement_dot() const;
-#define GETTERSETTER_GD3D(VAR,TYPE) void GD3Dtd_character::set_##VAR##(const TYPE##& set);\
-                                            TYPE GD3Dtd_character::get_##VAR##() const
+#define GETTERSETTER_GD3D(VAR,TYPE) void set_##VAR##(const TYPE##& set);\
+                                            TYPE get_##VAR##() const
     GETTERSETTER_GD3D(mouse_sensitivity, float);
     GETTERSETTER_GD3D(walk_speed, float);
     GETTERSETTER_GD3D(sprint_speed, float);
@@ -138,6 +138,8 @@ public:
     GETTERSETTER_GD3D(camera_predict_speed, float);
     GETTERSETTER_GD3D(interiors_collision_mask, uint32_t);
     GETTERSETTER_GD3D(aim_collision_mask, uint32_t);
+    GETTERSETTER_GD3D(interiors_collision_box_size, Vector3);
+    GETTERSETTER_GD3D(interiors_collision_box_centre, Vector3);
 #undef GETTERSETTER_GD3D
 
     uint32_t get_visual_collision_mask() const;
