@@ -18,10 +18,9 @@ void GD3Dvisual_obstacle::_bind_methods()
 	ClassDB::bind_method(D_METHOD("initialize"), &GD3Dvisual_obstacle::initialize);
 	ClassDB::bind_method(D_METHOD("uninitialize"), &GD3Dvisual_obstacle::uninitialize);
 	
-	ClassDB::bind_method(D_METHOD("on_enter_obstacle"), &GD3Dvisual_obstacle::on_enter_obstacle);
-	ClassDB::bind_method(D_METHOD("on_exit_obstacle"), &GD3Dvisual_obstacle::on_exit_obstacle);
+	ClassDB::bind_method(D_METHOD("obstacle_entered"), &GD3Dvisual_obstacle::obstacle_entered);
+	ClassDB::bind_method(D_METHOD("obstacle_exited"), &GD3Dvisual_obstacle::obstacle_exited);
 
-	GETSET_GD3D(locked);
 	GETSET_GD3D(auto_ignore);
 	GETSET_GD3D(auto_invisible);
 	GETSET_GD3D(shader_param);
@@ -43,14 +42,17 @@ void GD3Dvisual_obstacle::_bind_methods()
 void GD3Dvisual_obstacle::initialize()
 {
 	if (initialized) return;
-	
+	under_area = false;
+	under_multi_area = false;
 	visible_mesh = nullptr;
 	shadow_mesh = nullptr;
 	if(!visible_material.is_null()) visible_material.unref();
 	is_invisible = false;
-	locked = false;
 	if (!auto_invisible) return;
 
+	collision_layer = get_collision_layer();
+
+#pragma region create_shadow_mesh
 	TypedArray<Node> cols = get_children();
 	if (cols.size() < 1) return;
 	for (int64_t i = 0; i < cols.size(); i++)
@@ -87,36 +89,110 @@ void GD3Dvisual_obstacle::initialize()
 		visible_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
 		shadow_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_SHADOWS_ONLY);
 	}
+#pragma endregion create_shadow_mesh
+	
+	parent_interior_areas = get_interior_area_parents(this);
+	
+	if (parent_interior_areas.size() > 0) 	under_area = true;
+	
+	if (parent_interior_areas.size() > 1)
+	{
+		WARN_PRINT(get_name());
+		under_multi_area = true;
+	}
+	
+	for (int64_t i = 0; i < parent_interior_areas.size(); i++)
+	{
+		GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(parent_interior_areas[i]);
+		area->connect("entered_signal_mask", Callable(this, "obstacle_entered"));
+		area->connect("exited_signal_mask", Callable(this, "obstacle_exited"));
+
+	}
 	initialized = true;
+}
+TypedArray<GD3Dinterior_area> GD3Dvisual_obstacle::get_interior_area_parents(Node3D* nd)
+{
+	TypedArray<GD3Dinterior_area> n_arr = {};
+	Node3D* n_parent = nd->get_parent_node_3d();
+	
+	if (n_parent == nullptr) return n_arr;
+	GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(n_parent);
+	if(area != nullptr )
+		if(area->get_class() == "GD3Dinterior_area")
+			n_arr.append(area);
+
+	n_arr.append_array(get_interior_area_parents(n_parent));
+	
+	return n_arr;
 }
 void GD3Dvisual_obstacle::uninitialize()
 {
 	if (shadow_mesh != nullptr) memfree(shadow_mesh);
 	if (!visible_material.is_null()) visible_material.unref();
+
+	if (parent_interior_areas.size() > 0)
+	{
+		for (int64_t i = 0; i < parent_interior_areas.size(); i++)
+		{
+			GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(parent_interior_areas[i]);
+			if(area->is_connected("entered_signal_mask", Callable(this, "obstacle_entered")))
+				area->disconnect("entered_signal_mask", Callable(this, "obstacle_entered"));
+			if (area->is_connected("exited_signal_mask", Callable(this, "obstacle_exited")))
+				area->disconnect("exited_signal_mask", Callable(this, "obstacle_exited"));
+		}
+	}
+
+	parent_interior_areas.clear();
 	shadow_mesh = nullptr;
 	visible_mesh = nullptr;
 	initialized = false;
 }
-void GD3Dvisual_obstacle::on_enter_obstacle(uint32_t ignoremask)
-{
-	collision_layer = get_collision_layer();
 
-	if (auto_invisible)  make_invisible();
+void GD3Dvisual_obstacle::obstacle_entered(uint32_t ignoremask)
+{
+	if (auto_invisible) make_invisible();
+	
 	if (auto_ignore) set_collision_layer((collision_layer & ignoremask) ^ collision_layer);
 	emit_signal("visual_disappear_signal", get_rid(), this);
 }
-void GD3Dvisual_obstacle::on_exit_obstacle()
+void GD3Dvisual_obstacle::obstacle_exited(uint32_t ignoremask)
 {
-
-	if (auto_invisible) make_visible();
-	if(auto_ignore) set_collision_layer(collision_layer);
 	
-	emit_signal("visual_appear_signal", get_rid(), this);
+	if (!under_area) {
+		if (auto_invisible) make_visible();
+		if (auto_ignore) set_collision_layer(collision_layer);
+		emit_signal("visual_appear_signal", get_rid(), this);
+		return;
+	}
+	else if (!under_multi_area)
+	{
+		if (cast_to<GD3Dinterior_area>(parent_interior_areas[0])->is_entered()) return;
+		if (auto_invisible) make_visible();
+		if (auto_ignore) set_collision_layer(collision_layer);
+		emit_signal("visual_appear_signal", get_rid(), this);
+		return;
+	}
+	else
+	{
+		WARN_PRINT("Exited");
+		bool should_invisible = false;
+		for (int64_t i = 0; i < parent_interior_areas.size(); i++)
+		{
+			should_invisible = cast_to<GD3Dinterior_area>(parent_interior_areas[i])->is_entered();
+			if (should_invisible) break;
+		}
+		if (should_invisible) return;
+		if (auto_invisible) make_visible();
+		if (auto_ignore) set_collision_layer(collision_layer);
+		emit_signal("visual_appear_signal", get_rid(), this);
+		return;
+	}
+	return;
 }
+
 void GD3Dvisual_obstacle::make_invisible()
 {
-	
-	if (!initialized || is_invisible || !auto_invisible || locked) return;
+	if (!initialized || is_invisible) return;
 	is_invisible = true;
 
 	if (use_shader)
@@ -131,8 +207,8 @@ void GD3Dvisual_obstacle::make_invisible()
 }
 void GD3Dvisual_obstacle::make_visible()
 {
-	
-	if (!initialized || !is_invisible || !auto_invisible || locked ) return;
+	if (under_multi_area) WARN_PRINT("CalledInv");
+	if (!initialized || !is_invisible) return;
 	is_invisible = false;
 	if (use_shader) 
 	{
@@ -146,7 +222,6 @@ void GD3Dvisual_obstacle::make_visible()
 
 #define GETTERSETTER_GD3D(TYPE,VAR) void GD3Dvisual_obstacle::set_##VAR##(const TYPE##& set) { VAR = set;}\
                                             TYPE GD3Dvisual_obstacle::get_##VAR##() const {return VAR ;}
-GETTERSETTER_GD3D(bool, locked);
 GETTERSETTER_GD3D(bool, auto_ignore);
 GETTERSETTER_GD3D(bool, auto_invisible);
 GETTERSETTER_GD3D(StringName, shader_param);

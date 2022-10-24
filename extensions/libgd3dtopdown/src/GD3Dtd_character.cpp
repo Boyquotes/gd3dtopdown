@@ -560,13 +560,13 @@ void GD3Dtd_character::enter_visual_event(Variant body)
 {
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle") 
-        ar->on_enter_obstacle(aim_collision_mask);
+        ar->obstacle_entered(aim_collision_mask);
 }
 void GD3Dtd_character::exit_visual_event(Variant body)
 {
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle") 
-        ar->on_exit_obstacle();
+        ar->obstacle_exited(aim_collision_mask);
 }
 void GD3Dtd_character::enter_interior_event(Variant area)
 {
@@ -579,7 +579,7 @@ void GD3Dtd_character::exit_interior_event(Variant area)
 {
     GD3Dinterior_area* in_area = cast_to<GD3Dinterior_area>(area);
     if (in_area != nullptr && in_area->get_class() == "GD3Dinterior_area")
-        in_area->on_exit_area();
+        in_area->on_exit_area(aim_collision_mask);
 }
 //Setters and getters
 Vector3 GD3Dtd_character::get_lookat_position() const
