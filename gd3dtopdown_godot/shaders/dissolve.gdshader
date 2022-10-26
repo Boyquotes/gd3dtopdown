@@ -7,5 +7,4 @@ void fragment() {
 	float noise_sample = texture(noise,UV).r;
 	ALBEDO = current_color.xyz;
 	ALPHA = step(noise_sample,1.0-ammount);
-	ALPHA_SCISSOR_THRESHOLD = 0.1;
 }

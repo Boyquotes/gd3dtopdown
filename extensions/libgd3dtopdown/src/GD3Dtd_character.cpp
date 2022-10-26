@@ -18,9 +18,8 @@ void GD3Dtd_character::_bind_methods()
     ClassDB::bind_method(D_METHOD("rotate_camera_aimlock","rotation_Vector2"), &GD3Dtd_character::rotate_camera_aimlock);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse", "event"), &GD3Dtd_character::rotate_camera_mouse);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse_aimlock","event"), &GD3Dtd_character::rotate_camera_mouse_aimlock);
-    ClassDB::bind_method(D_METHOD("character_move_full","delta","input_Vector2","is_aiming","is_sprinting"), &GD3Dtd_character::character_move_full);
-    ClassDB::bind_method(D_METHOD("character_move_aim", "delta", "input_Vector2", "is_sprinting"), &GD3Dtd_character::character_move_aim);
-    ClassDB::bind_method(D_METHOD("character_move_no_aim", "delta", "input_Vector2", "is_sprinting"), &GD3Dtd_character::character_move_no_aim);
+    ClassDB::bind_method(D_METHOD("character_move","delta","input_Vector2","is_aiming","is_sprinting"), &GD3Dtd_character::character_move);
+   
     
     GETSET_GD3D(mouse_sensitivity);
     GETSET_GD3D(walk_speed);
@@ -75,6 +74,8 @@ void GD3Dtd_character::_bind_methods()
 bool GD3Dtd_character::_initialize()
 {
     if (initialized) return false;
+
+#pragma region Needed_pointers_and_child_node_instantiation
     //General pointers
     ProjectSettings* p_settings = ProjectSettings::get_singleton();
     ph_server = PhysicsServer3D::get_singleton();
@@ -84,55 +85,36 @@ bool GD3Dtd_character::_initialize()
     visual_collision_area = memnew(Area3D);
     CollisionShape3D* visual_col_shp = memnew(CollisionShape3D);
     BoxShape3D* visual_box = memnew(BoxShape3D);
-
+    
     interiors_collision_area = memnew(Area3D);
     CollisionShape3D* interiors_collision_col_shp = memnew(CollisionShape3D);
     BoxShape3D* interiors_collision_box = memnew(BoxShape3D);
 
+    w3d = get_world_3d().ptr();
     //Null checks
     CHECKNULL_ERRGD3D(p_settings);
     CHECKNULL_ERRGD3D(ph_server);
     CHECKNULL_ERRGD3D(camera);
+    CHECKNULL_ERRGD3D(w3d);
     CHECKNULL_ERRGD3D(visual_collision_area);
     CHECKNULL_ERRGD3D(visual_col_shp);
     CHECKNULL_ERRGD3D(visual_box);
     CHECKNULL_ERRGD3D(interiors_collision_area);
     CHECKNULL_ERRGD3D(interiors_collision_col_shp);
     CHECKNULL_ERRGD3D(interiors_collision_box);
+   
+#pragma endregion Needed_pointers_and_child_nodes
 
-    if((visual_collision_mask & aim_collision_mask) != 0)
-    {
-        WARN_PRINT("Visual_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
-    }
-    if ((interiors_collision_mask & aim_collision_mask) != 0)
-    {
-        WARN_PRINT("interiors_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
-    }
-    w3d = get_world_3d();
-    if (!w3d.is_valid())
-    {
-        _uninitialize();
-        ERR_FAIL_V_MSG(false, "Could not obtain World 3d reference, didnt initialize");
-    }
-    Variant grav = p_settings->get_setting("physics/3d/default_gravity");
-    if (grav.get_type() == Variant::INT || grav.get_type() == Variant::FLOAT)
-    {
-        gravity = float(grav);
-    }
-    else
-    {
-        gravity = 9.8f;
-        WARN_PRINT("Could not obtain value for gravity from project settings, defaulting to 9.8");
-    }
-
+    
+#pragma region Child_node_initialization
     //Visual obstacle Collision area initialization
     add_child(visual_collision_area);
     visual_collision_area->set_owner(this);
     visual_collision_area->add_child(visual_col_shp);
     visual_col_shp->set_owner(visual_collision_area);
     visual_col_shp->set_shape(visual_box);
-
-    visual_box->set_size(Vector3(1, 1, camera_boon.length()));
+    visual_collision_area->set_position(Vector3(0, 1, 0));
+    visual_box->set_size(Vector3(0.1f, 0.1f, camera_boon.length()));
     visual_col_shp->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
 
     visual_collision_area->set_collision_layer(0);
@@ -157,11 +139,42 @@ bool GD3Dtd_character::_initialize()
     interiors_collision_area->set_collision_mask(visual_collision_mask);
     interiors_collision_area->set_monitoring(true);
     interiors_collision_area->set_monitorable(true);
+#pragma endregion Child_node_initialization
+
+    //Some warnings
+#ifdef DEBUG
+
+    if ((visual_collision_mask & aim_collision_mask) != 0)
+    {
+        WARN_PRINT("Visual_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
+    }
+    if ((interiors_collision_mask & aim_collision_mask) != 0)
+    {
+        WARN_PRINT("interiors_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
+    }
+#endif // DEBUG
+
+
+    Variant grav = p_settings->get_setting("physics/3d/default_gravity");
+    if (grav.get_type() == Variant::INT || grav.get_type() == Variant::FLOAT)
+    {
+        gravity = float(grav);
+    }
+    else
+    {
+        gravity = 9.8f;
+#ifdef DEBUG
+        WARN_PRINT("Could not obtain value for gravity from project settings, defaulting to 9.8");
+#endif // DEBUG
+    }
+
 
     interiors_collision_area->connect("area_entered", Callable(this, "enter_interior_event"));
     interiors_collision_area->connect("area_exited", Callable(this, "exit_interior_event"));
 
-    WARN_PRINT(DEBUG_STR("Initialized GD3D with gravity: " + String::num_real(gravity)));
+#ifdef DEBUG
+    WARN_PRINT("Initialized GD3D with gravity: " + String::num_real(gravity));
+#endif // DEBUG
 
     initialized = true;
     
@@ -176,7 +189,7 @@ void GD3Dtd_character::_uninitialize()
             visual_collision_area->disconnect("body_entered", Callable(this, "enter_visual_event"));
         if (visual_collision_area->is_connected("body_exited", Callable(this, "exit_visual_event")))
             visual_collision_area->disconnect("body_exited", Callable(this, "exit_visual_event"));
-        memfree(visual_collision_area);
+       memdelete(visual_collision_area);
     }
     if (interiors_collision_area != nullptr)
     {
@@ -184,7 +197,7 @@ void GD3Dtd_character::_uninitialize()
             interiors_collision_area->disconnect("area_entered", Callable(this, "enter_interior_event"));
         if (interiors_collision_area->is_connected("area_exited", Callable(this, "exit_interior_event")))
             interiors_collision_area->disconnect("area_exited", Callable(this, "exit_interior_event"));
-        memfree(interiors_collision_area);
+        memdelete(interiors_collision_area);
     }
 
     visual_collision_area = nullptr;
@@ -192,6 +205,7 @@ void GD3Dtd_character::_uninitialize()
     old_aim_node = nullptr;
     camera = nullptr;
     ph_server = nullptr;
+    w3d = nullptr;
     initialized = false;
 }
 bool GD3Dtd_character::_is_initialized() const
@@ -228,10 +242,10 @@ void GD3Dtd_character::character_init()
     old_aim_node = nullptr;
     camera = nullptr;
     ph_server = nullptr;
-
+    w3d = nullptr;
     _initialize();
-
 }
+#pragma region Camera_input_functions
 void GD3Dtd_character::rotate_camera_mouse_aimlock(const Ref<InputEvent>& p_event)
 {
     Ref<InputEventMouseMotion> m = p_event;
@@ -278,8 +292,9 @@ void GD3Dtd_character::rotate_camera_aimlock(const Vector2& motion)
     camera->set_position(camera_follow_position + camera_boon);
     camera->look_at(camera_follow_position);
 }
-
-void GD3Dtd_character::character_move_full(double delta, const Vector2& input_dir, const bool aiming, const bool is_sprinting)
+#pragma endregion Camera_input_functions
+#pragma region Character_movement_function
+void GD3Dtd_character::character_move(double delta, const Vector2& input_dir, const bool aiming, const bool is_sprinting)
 {
     if (!initialized) return;
     //Inputs and environment
@@ -383,205 +398,55 @@ void GD3Dtd_character::character_move_full(double delta, const Vector2& input_di
     character_movement_dot = character_forward.dot(character_direction_plane);
 
 }
-void GD3Dtd_character::character_move_aim(double delta, const  Vector2& input_dir, const bool is_sprinting)
-{
-    if (!initialized) return;
-    //Inputs and environment
-    
-    Vector3 vel = get_velocity();
-    bool floored = is_on_floor();
-    float speed = walk_speed;
+#pragma endregion Character_movement_function
 
-    //Logic with inputs
-    if (!floored)
-    {
-        vel.y -= gravity * delta;
-    }
-
-    if (is_sprinting && floored)
-    {
-        speed = sprint_speed;
-    }
-
-    Vector3 direction = (camera->get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
-
-    Vector3 lookat_pos = get_position();
-    Vector3 front_pos = -get_global_transform().get_basis().get_column(2);
-    if (direction.is_zero_approx())
-    {
-        vel.x = Math::move_toward(vel.x, 0, speed);
-        vel.z = Math::move_toward(vel.z, 0, speed);
-
-
-        lookat_pos.x += front_pos.x;
-        lookat_pos.z += front_pos.z;
-    }
-    else
-    {
-        vel.x = direction.x * speed;
-        vel.z = direction.z * speed;
-        lookat_pos.x += direction.x;
-        lookat_pos.z += direction.z;
-    }
-
-    Vector2 mouse_pos = get_viewport()->get_mouse_position();
-
-    Ref<PhysicsRayQueryParameters3D> ray = PhysicsRayQueryParameters3D::create(
-        camera->project_ray_origin(mouse_pos),
-        camera->project_ray_normal(mouse_pos) * 1000, aim_collision_mask);
-
-    Dictionary ray_dict = ph_server->space_get_direct_state(
-        w3d->get_space())->intersect_ray(ray);
-    if (ray_dict != Dictionary())
-    {
-        Vector3 pos = ray_dict["position"];
-        lookat_pos.x = pos.x;
-        lookat_pos.z = pos.z;
-
-        Node3D* nd = cast_to<Node3D>(ray_dict["collider"]);
-        handle_aim_node(nd);
-    }
-    else
-    {
-        handle_aim_node(nullptr);
-    }
-    
-    camera_follow_position = camera_follow_position.lerp(camera_predict * direction.length_squared()
-        * front_pos + get_position(), camera_predict_speed * delta);
-
-    //Setting the resulting logic to the character and camera nodes
-    set_velocity(vel);
-    move_and_slide();
-    if (!instant_turn_aiming)
-    {
-        lookat_position = lookat_position.lerp(lookat_pos, turn_speed);
-    }
-    else
-    {
-        lookat_position = lookat_pos, turn_speed;
-    }
-    look_at(Vector3(lookat_position.x, get_position().y, lookat_position.z));
-    Vector3 cam_pos = camera_follow_position + camera_boon;
-    camera->set_position(cam_pos);
-    camera->look_at(camera_follow_position);
-    visual_collision_area->look_at(cam_pos);
-
-    //Character info
-    Vector3 dir_norm = vel.normalized();
-    character_forward = -get_global_transform().get_basis().get_column(2);
-    character_direction = dir_norm;
-    character_direction_plane = Vector3(dir_norm.x, get_position().y, dir_norm.z);
-    character_movement_dot = character_forward.dot(character_direction_plane);
-}
-void GD3Dtd_character::character_move_no_aim(double delta, const  Vector2& input_dir, const bool is_sprinting)
-{
-    if (!initialized) return;
-    //Inputs and environment
-    is_aiming = false;
-    Vector3 vel = get_velocity();
-    bool floored = is_on_floor();
-    float speed = walk_speed;
-
-    //Logic with inputs
-    if (!floored)
-    {
-        vel.y -= gravity * delta;
-    }
-
-    if (is_sprinting && floored)
-    {
-        speed = sprint_speed;
-    }
-
-    Vector3 direction = (camera->get_transform().basis.xform(Vector3(input_dir.x, 0, input_dir.y))).normalized();
-
-    Vector3 lookat_pos = get_position();
-    Vector3 front_pos = -get_global_transform().get_basis().get_column(2);
-    if (direction.is_zero_approx())
-    {
-        vel.x = Math::move_toward(vel.x, 0, speed);
-        vel.z = Math::move_toward(vel.z, 0, speed);
-
-
-        lookat_pos.x += front_pos.x;
-        lookat_pos.z += front_pos.z;
-    }
-    else
-    {
-        vel.x = direction.x * speed;
-        vel.z = direction.z * speed;
-        lookat_pos.x += direction.x;
-        lookat_pos.z += direction.z;
-    }
-
-    camera_follow_position = camera_follow_position.lerp(camera_predict * direction.length_squared()
-        * front_pos + get_position(), camera_predict_speed * delta);
-    //Setting the resulting logic to the character and camera nodes
-    set_velocity(vel);
-    if (!is_aiming || !instant_turn_aiming)
-    {
-        lookat_position = lookat_position.lerp(lookat_pos, turn_speed);
-    }
-    else
-    {
-        lookat_position = lookat_pos, turn_speed;
-    }
-    
-    look_at(lookat_position);
-    move_and_slide();
-    Vector3 cam_pos = camera_follow_position + camera_boon;
-    camera->set_position(cam_pos);
-    camera->look_at(camera_follow_position);
-    visual_collision_area->look_at(cam_pos);
-
-    //Character info
-    Vector3 dir_norm = vel.normalized();
-    character_forward = -get_global_transform().get_basis().get_column(2);
-    character_direction = dir_norm;
-    character_direction_plane = Vector3(dir_norm.x, get_position().y, dir_norm.z);
-    character_movement_dot = character_forward.dot(character_direction_plane);
-}
-//Other functions
+#pragma region Character_interaction_functions
 void GD3Dtd_character::handle_aim_node(Node3D* nd)
 {
     if (old_aim_node == nd) return;
     if (old_aim_node != nullptr)
     {
+        //cast_to
+        //if(old_aim_node->get_class() == "selectable_class")
         //DeHighlight function old_aim_node_->
     }
     old_aim_node = nd;
 
-    if (nd != nullptr)
+    if (old_aim_node != nullptr)
     {
+        //cast_to
+        //if(old_aim_node->get_class() == "selectable_class")
+        // 
         //Highlight_function
     }
 }
-void GD3Dtd_character::enter_visual_event(Variant body)
+void GD3Dtd_character::enter_visual_event(Object* body)
 {
-    GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
-    if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle") 
+    GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body); 
+    if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle")
         ar->obstacle_entered(aim_collision_mask);
 }
-void GD3Dtd_character::exit_visual_event(Variant body)
+void GD3Dtd_character::exit_visual_event(Object* body)
 {
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
-    if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle") 
+    if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle")
         ar->obstacle_exited(aim_collision_mask);
 }
-void GD3Dtd_character::enter_interior_event(Variant area)
+void GD3Dtd_character::enter_interior_event(Object* area)
 {
     GD3Dinterior_area* in_area = cast_to<GD3Dinterior_area>(area);
-
     if (in_area != nullptr && in_area->get_class() == "GD3Dinterior_area") 
         in_area->on_enter_area(aim_collision_mask);
 }
-void GD3Dtd_character::exit_interior_event(Variant area)
+void GD3Dtd_character::exit_interior_event(Object* area)
 {
     GD3Dinterior_area* in_area = cast_to<GD3Dinterior_area>(area);
     if (in_area != nullptr && in_area->get_class() == "GD3Dinterior_area")
         in_area->on_exit_area(aim_collision_mask);
 }
-//Setters and getters
+#pragma endregion Character_interaction_functions
+#pragma region Getters_and_setters
+//Getters and setters
 Vector3 GD3Dtd_character::get_lookat_position() const
 {
     return lookat_position;
@@ -610,6 +475,7 @@ uint32_t GD3Dtd_character::get_visual_collision_mask() const
      }*/
     return msk;
 }
+
 Vector3 GD3Dtd_character::get_character_forward() const { return character_forward; }
 Vector3 GD3Dtd_character::get_character_direction() const { return character_direction; }
 Vector3 GD3Dtd_character::get_character_direction_plane() const { return character_direction_plane; }
@@ -633,3 +499,4 @@ GETTERSETTER_GD3D(interiors_collision_box_size, Vector3);
 GETTERSETTER_GD3D(interiors_collision_box_centre, Vector3);
 
 #undef GETTERSETTER_GD3D
+#pragma endregion Getters_and_setters

@@ -26,15 +26,21 @@ void GD3Dvisual_obstacle::_bind_methods()
 	GETSET_GD3D(shader_param);
 	GETSET_GD3D(shader_param_min);
 	GETSET_GD3D(shader_param_max);
-
+	GETSET_GD3D(shader_duration);
+	
 	ADDPROP_GD3D(BOOL, auto_ignore);
 	ADDPROP_GD3D(BOOL, auto_invisible);
 	ADDPROP_GD3D(STRING_NAME, shader_param);
 	ADDPROP_GD3D(FLOAT, shader_param_min);
 	ADDPROP_GD3D(FLOAT, shader_param_max);
+	ADDPROP_GD3D(FLOAT, shader_duration);
 
 	ADD_SIGNAL(MethodInfo("visual_disappear_signal", PropertyInfo(Variant::OBJECT, "object")));
 	ADD_SIGNAL(MethodInfo("visual_appear_signal", PropertyInfo(Variant::OBJECT, "object")));
+
+
+	ClassDB::bind_method(D_METHOD("_invisible_shader_tween"), &GD3Dvisual_obstacle::_invisible_shader_tween);
+	ClassDB::bind_method(D_METHOD("_visible_shader_tween"), &GD3Dvisual_obstacle::_visible_shader_tween);
 }
 #undef GETSET_GD3D
 #undef ADDPROP_GD3D
@@ -51,6 +57,8 @@ void GD3Dvisual_obstacle::initialize()
 	if (!auto_invisible) return;
 
 	collision_layer = get_collision_layer();
+
+	
 
 #pragma region create_shadow_mesh
 	TypedArray<Node> cols = get_children();
@@ -80,6 +88,14 @@ void GD3Dvisual_obstacle::initialize()
 		}else
 		{
 			use_shader = true;
+			tw_invisible = this->create_tween();
+			tw_visible = this->create_tween();
+			tw_invisible->connect("finished", Callable(tw_invisible.ptr(), "stop"));//Prevents the tween becoming disabled when it finishes
+			tw_visible->connect("finished", Callable(tw_visible.ptr(), "stop"));
+			tw_invisible->tween_method(Callable(this, "_invisible_shader_tween"), shader_param_min, shader_param_max, shader_duration);
+			tw_visible->tween_method(Callable(this, "_visible_shader_tween"), shader_param_max, shader_param_min, shader_duration);
+			tw_invisible->stop();
+			tw_visible->stop();
 		}
 		shadow_mesh = memnew(MeshInstance3D);
 		add_child(shadow_mesh);
@@ -88,6 +104,7 @@ void GD3Dvisual_obstacle::initialize()
 		shadow_mesh->set_material_override(memnew(Material));
 		visible_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
 		shadow_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_SHADOWS_ONLY);
+
 	}
 #pragma endregion create_shadow_mesh
 	
@@ -97,7 +114,6 @@ void GD3Dvisual_obstacle::initialize()
 	
 	if (parent_interior_areas.size() > 1)
 	{
-		WARN_PRINT(get_name());
 		under_multi_area = true;
 	}
 	
@@ -106,7 +122,6 @@ void GD3Dvisual_obstacle::initialize()
 		GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(parent_interior_areas[i]);
 		area->connect("entered_signal_mask", Callable(this, "obstacle_entered"));
 		area->connect("exited_signal_mask", Callable(this, "obstacle_exited"));
-
 	}
 	initialized = true;
 }
@@ -174,11 +189,11 @@ void GD3Dvisual_obstacle::obstacle_exited(uint32_t ignoremask)
 	}
 	else
 	{
-		WARN_PRINT("Exited");
 		bool should_invisible = false;
 		for (int64_t i = 0; i < parent_interior_areas.size(); i++)
 		{
-			should_invisible = cast_to<GD3Dinterior_area>(parent_interior_areas[i])->is_entered();
+
+			should_invisible = cast_to<GD3Dinterior_area>(parent_interior_areas[i])->is_entered(); //<--Safe to call directly since it was pushed to a typedarray
 			if (should_invisible) break;
 		}
 		if (should_invisible) return;
@@ -197,7 +212,15 @@ void GD3Dvisual_obstacle::make_invisible()
 
 	if (use_shader)
 	{
-		visible_material->set_shader_parameter(shader_param, shader_param_max);
+		double elapsed_time = 0;
+		if (tw_visible->is_running())
+			elapsed_time = tw_invisible->get_total_elapsed_time();
+
+		tw_visible->stop();
+		tw_invisible->stop();
+		tw_invisible->custom_step(shader_duration - elapsed_time);
+		tw_invisible->play();
+
 	}
 	else
 	{
@@ -207,19 +230,32 @@ void GD3Dvisual_obstacle::make_invisible()
 }
 void GD3Dvisual_obstacle::make_visible()
 {
-	if (under_multi_area) WARN_PRINT("CalledInv");
 	if (!initialized || !is_invisible) return;
 	is_invisible = false;
 	if (use_shader) 
 	{
-		visible_material->set_shader_parameter(shader_param, shader_param_min);
+		double elapsed_time = 0;
+		if(tw_invisible->is_running())
+			elapsed_time = tw_invisible->get_total_elapsed_time();
+
+		tw_invisible->stop();
+		tw_visible->stop();
+		tw_visible->custom_step(shader_duration - elapsed_time);
+		tw_visible->play();
 	}
 	else
 	{
 		visible_mesh->set_visible(true);
 	}
 }
-
+void GD3Dvisual_obstacle::_invisible_shader_tween(float progress)
+{
+	visible_material->set_shader_parameter(shader_param, progress);
+}
+void GD3Dvisual_obstacle::_visible_shader_tween(float progress)
+{
+	visible_material->set_shader_parameter(shader_param, progress);
+}
 #define GETTERSETTER_GD3D(TYPE,VAR) void GD3Dvisual_obstacle::set_##VAR##(const TYPE##& set) { VAR = set;}\
                                             TYPE GD3Dvisual_obstacle::get_##VAR##() const {return VAR ;}
 GETTERSETTER_GD3D(bool, auto_ignore);
@@ -227,5 +263,6 @@ GETTERSETTER_GD3D(bool, auto_invisible);
 GETTERSETTER_GD3D(StringName, shader_param);
 GETTERSETTER_GD3D(float, shader_param_min);
 GETTERSETTER_GD3D(float, shader_param_max);
+GETTERSETTER_GD3D(float, shader_duration);
 
 #undef GETTERSETTER_GD3D

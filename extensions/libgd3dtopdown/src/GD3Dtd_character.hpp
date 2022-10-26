@@ -50,7 +50,7 @@ private:
     bool initialized;
     //Singletons
     PhysicsServer3D* ph_server;
-    Ref<World3D> w3d;
+    World3D* w3d;
 
     //Values
     float gravity = 9.8f;
@@ -100,9 +100,8 @@ public:
 
 
     void character_init();
-    void character_move_full(double delta, const Vector2& input_dir, const bool aiming, const bool is_sprinting);
-    void character_move_aim(double delta, const  Vector2& input_dir, const bool is_sprinting);
-    void character_move_no_aim(double delta, const  Vector2& input_dir, const bool is_sprintin);
+    void character_move(double delta, const Vector2& input_dir, const bool aiming, const bool is_sprinting);
+ 
     void rotate_camera_mouse(const Ref<InputEvent>& p_event);
     void rotate_camera_mouse_aimlock(const Ref<InputEvent>& p_event);
     void rotate_camera(const Vector2& motion);
@@ -112,11 +111,11 @@ public:
     void handle_aim_node(Node3D* nd);
 
     //Signal Calls
-    void enter_visual_event(Variant body);
-    void exit_visual_event(Variant body);
+    void enter_visual_event(Object* body);
+    void exit_visual_event(Object* body);
 
-    void enter_interior_event(Variant area);
-    void exit_interior_event(Variant area);
+    void enter_interior_event(Object* area);
+    void exit_interior_event(Object* area);
 
     //Getters and setters
 
