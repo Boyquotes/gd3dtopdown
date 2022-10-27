@@ -2,7 +2,6 @@
 
 GD3Dtd_character::GD3Dtd_character()
 {
-    last_speed =0;
 }
 GD3Dtd_character::~GD3Dtd_character()
 {
@@ -39,7 +38,6 @@ void GD3Dtd_character::_bind_methods()
     GETSET_GD3D(visual_collision_mask);
     GETSET_GD3D(aim_collision_mask);
 
-    ClassDB::bind_method(D_METHOD("get_last_speed"), &GD3Dtd_character::get_last_speed);
     ClassDB::bind_method(D_METHOD("get_character_forward"), &GD3Dtd_character::get_character_forward);
     ClassDB::bind_method(D_METHOD("get_character_direction"), &GD3Dtd_character::get_character_direction);
     ClassDB::bind_method(D_METHOD("get_character_direction_plane"), &GD3Dtd_character::get_character_direction_plane);
@@ -394,7 +392,6 @@ void GD3Dtd_character::character_move(double delta, const Vector2& input_dir, co
 
     //Character info
     Vector3 dir_norm = vel.normalized();
-    last_speed = speed;
     character_forward = -get_global_transform().get_basis().get_column(2);
     character_direction = dir_norm;
     character_direction_plane =Vector3(dir_norm.x,get_position().y,dir_norm.z);
@@ -427,13 +424,13 @@ void GD3Dtd_character::enter_visual_event(Object* body)
 {
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body); 
     if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle")
-        ar->obstacle_entered(aim_collision_mask);
+        ar->obstacle_entered_char(aim_collision_mask);
 }
 void GD3Dtd_character::exit_visual_event(Object* body)
 {
     GD3Dvisual_obstacle* ar = cast_to<GD3Dvisual_obstacle>(body);
     if (ar != nullptr && ar->get_class() == "GD3Dvisual_obstacle")
-        ar->obstacle_exited(aim_collision_mask);
+        ar->obstacle_exited_char(aim_collision_mask);
 }
 void GD3Dtd_character::enter_interior_event(Object* area)
 {
@@ -450,10 +447,6 @@ void GD3Dtd_character::exit_interior_event(Object* area)
 #pragma endregion Character_interaction_functions
 #pragma region Getters_and_setters
 //Getters and setters
-float GD3Dtd_character::get_last_speed() const
-{
-    return last_speed;
-}
 Vector3 GD3Dtd_character::get_lookat_position() const
 {
     return lookat_position;
@@ -482,7 +475,6 @@ uint32_t GD3Dtd_character::get_visual_collision_mask() const
      }*/
     return msk;
 }
-
 Vector3 GD3Dtd_character::get_character_forward() const { return character_forward; }
 Vector3 GD3Dtd_character::get_character_direction() const { return character_direction; }
 Vector3 GD3Dtd_character::get_character_direction_plane() const { return character_direction_plane; }

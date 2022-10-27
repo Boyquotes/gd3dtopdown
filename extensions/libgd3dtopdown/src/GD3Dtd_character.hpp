@@ -83,7 +83,6 @@ private:
     Area3D* visual_collision_area;
 
     //Displacement and orientation vectors
-    float last_speed;
     Vector3 character_forward;
     Vector3 character_direction;
     Vector3 character_direction_plane;
@@ -119,7 +118,6 @@ public:
     void exit_interior_event(Object* area);
 
     //Getters and setters
-    float get_last_speed() const;
     Vector3 get_character_forward() const;
     Vector3 get_character_direction() const;
     Vector3 get_character_direction_plane() const;

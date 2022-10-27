@@ -143,7 +143,7 @@ TypedArray<GD3Dinterior_area> GD3Dvisual_obstacle::get_interior_area_parents(Nod
 	if (n_parent == nullptr) return n_arr;
 	GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(n_parent);
 	if(area != nullptr && area->get_class() == "GD3Dinterior_area")
-			n_arr.append(area);
+		n_arr.append(area);
 
 	n_arr.append_array(get_interior_area_parents(n_parent));
 	
@@ -173,13 +173,13 @@ void GD3Dvisual_obstacle::uninit_obstacle()
 }
 void GD3Dvisual_obstacle::obstacle_entered_char(uint32_t ignoremask)
 {
-	obstacle_entered(ignoremask);
+	this->obstacle_entered(ignoremask);
 	entered_by_char = true;
 }
 void GD3Dvisual_obstacle::obstacle_exited_char(uint32_t ignoremask)
 {
 	entered_by_char = false;
-	obstacle_exited(ignoremask);
+	this->obstacle_exited(ignoremask);
 }
 void GD3Dvisual_obstacle::obstacle_entered(uint32_t ignoremask)
 {

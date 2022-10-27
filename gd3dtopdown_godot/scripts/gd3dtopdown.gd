@@ -10,4 +10,5 @@ func _physics_process(delta):
 	var movement = Input.get_vector("move_left","move_right","move_forward","move_back")
 	character_move(delta,movement,Input.is_action_pressed("aim"),
 		Input.is_action_pressed("sprint"))
-	#anim_tree.set("parameters/BlendSpace1D/blend_position",get_real_velocity().length()/get_last_speed())
+	
+	anim_tree.set("parameters/BlendSpace1D/blend_position",get_real_velocity().length()/get_walk_speed())

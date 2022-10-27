@@ -61,10 +61,10 @@ public:
 
 	void init_obstacle();
 	void uninit_obstacle();
-	void GD3Dvisual_obstacle::obstacle_entered_char(uint32_t ignoremask);
-	void GD3Dvisual_obstacle::obstacle_exited_char(uint32_t ignoremask);
 	void obstacle_entered(uint32_t ignoremask);
 	void obstacle_exited(uint32_t ignoremask);
+	void obstacle_entered_char(uint32_t ignoremask);
+	void obstacle_exited_char(uint32_t ignoremask);
 	void make_invisible();
 	void make_visible();
 	
