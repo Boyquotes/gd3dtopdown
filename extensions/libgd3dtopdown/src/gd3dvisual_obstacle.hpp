@@ -46,7 +46,7 @@ private:
 	float shader_duration = 0;
 	bool use_shader = false;
 	bool is_invisible;
-
+	bool entered_by_char;
 	TypedArray<GD3Dinterior_area> parent_interior_areas = {};
 	bool under_area;
 	bool under_multi_area;
@@ -59,9 +59,10 @@ private:
 
 public:
 
-	void initialize();
-	void uninitialize();
-
+	void init_obstacle();
+	void uninit_obstacle();
+	void GD3Dvisual_obstacle::obstacle_entered_char(uint32_t ignoremask);
+	void GD3Dvisual_obstacle::obstacle_exited_char(uint32_t ignoremask);
 	void obstacle_entered(uint32_t ignoremask);
 	void obstacle_exited(uint32_t ignoremask);
 	void make_invisible();

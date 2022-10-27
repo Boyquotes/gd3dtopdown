@@ -2,6 +2,7 @@
 
 GD3Dtd_character::GD3Dtd_character()
 {
+    last_speed =0;
 }
 GD3Dtd_character::~GD3Dtd_character()
 {
@@ -38,6 +39,7 @@ void GD3Dtd_character::_bind_methods()
     GETSET_GD3D(visual_collision_mask);
     GETSET_GD3D(aim_collision_mask);
 
+    ClassDB::bind_method(D_METHOD("get_last_speed"), &GD3Dtd_character::get_last_speed);
     ClassDB::bind_method(D_METHOD("get_character_forward"), &GD3Dtd_character::get_character_forward);
     ClassDB::bind_method(D_METHOD("get_character_direction"), &GD3Dtd_character::get_character_direction);
     ClassDB::bind_method(D_METHOD("get_character_direction_plane"), &GD3Dtd_character::get_character_direction_plane);
@@ -177,7 +179,6 @@ bool GD3Dtd_character::_initialize()
 #endif // DEBUG
 
     initialized = true;
-    
     return initialized;
 }
 #undef CHECKNULL_ERRGD3D
@@ -330,8 +331,10 @@ void GD3Dtd_character::character_move(double delta, const Vector2& input_dir, co
     }
     else
     {
-        vel.x = direction.x * speed;
-        vel.z = direction.z * speed;
+        
+        vel.x = Math::lerp(vel.x, direction.x * speed, 0.25f);
+        vel.z = Math::lerp(vel.z, direction.z * speed, 0.25f);
+        //vel.z = direction.z * speed;
         lookat_pos.x += direction.x;
         lookat_pos.z += direction.z;
     }
@@ -383,7 +386,6 @@ void GD3Dtd_character::character_move(double delta, const Vector2& input_dir, co
     {
         lookat_position = lookat_pos;
     }
-    
     look_at(Vector3(lookat_position.x,get_position().y,lookat_position.z));
     Vector3 cam_pos = camera_follow_position + camera_boon;
     camera->set_position(cam_pos);
@@ -392,6 +394,7 @@ void GD3Dtd_character::character_move(double delta, const Vector2& input_dir, co
 
     //Character info
     Vector3 dir_norm = vel.normalized();
+    last_speed = speed;
     character_forward = -get_global_transform().get_basis().get_column(2);
     character_direction = dir_norm;
     character_direction_plane =Vector3(dir_norm.x,get_position().y,dir_norm.z);
@@ -447,6 +450,10 @@ void GD3Dtd_character::exit_interior_event(Object* area)
 #pragma endregion Character_interaction_functions
 #pragma region Getters_and_setters
 //Getters and setters
+float GD3Dtd_character::get_last_speed() const
+{
+    return last_speed;
+}
 Vector3 GD3Dtd_character::get_lookat_position() const
 {
     return lookat_position;
