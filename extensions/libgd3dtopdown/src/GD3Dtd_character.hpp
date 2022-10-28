@@ -5,7 +5,6 @@
 #define GD3DTD_CHARACTER
 
 #include <godot_cpp/core/binder_common.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
 
 #include <godot_cpp/classes/character_body3d.hpp>
 
@@ -20,15 +19,11 @@
 #include <godot_cpp/classes/physics_server3d.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/physics_direct_space_state3d.hpp>
-#include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/node.hpp>
 
 #include <godot_cpp/classes/area3d.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/shape3d.hpp>
 #include <godot_cpp/classes/box_shape3d.hpp>
-
-#include <godot_cpp/classes/physics_body3d.hpp>
 
 #include "GD3Dvisual_obstacle.hpp"
 #include "GD3Dinterior_area.hpp"
@@ -48,15 +43,10 @@ protected:
 private:
 
     bool initialized;
-    //Singletons
-    PhysicsServer3D* ph_server;
-    World3D* w3d;
 
     //Values
     float gravity = 9.8f;
     float mouse_sensitivity = 0.2f;
-    float walk_speed = 5.0f;
-    float sprint_speed = 10.0f;
     float turn_speed = 0.5f;
     bool instant_turn_aiming;
 
@@ -90,17 +80,14 @@ private:
 
 public:
 
-    virtual bool _is_initialized()  const;
-    virtual bool _initialize();
-    virtual void _uninitialize();
-
     virtual void _ready() override;
     virtual void _input(const Ref<InputEvent>& p_event) override;
     virtual void _physics_process(double delta) override;
 
 
     void character_init();
-    void character_move(double delta, const Vector2& input_dir, const bool aiming, const bool is_sprinting);
+    void character_uninit();
+    void character_move(double delta, const Vector2& input_dir, const bool aiming, const float speed,const float move_lerp);
  
     void rotate_camera_mouse(const Ref<InputEvent>& p_event);
     void rotate_camera_mouse_aimlock(const Ref<InputEvent>& p_event);
@@ -108,6 +95,7 @@ public:
     void rotate_camera_aimlock(const Vector2& motion);
 
     //Other functions
+    void handle_aim(const bool aiming,Vector3& lookat_pos);
     void handle_aim_node(Node3D* nd);
 
     //Signal Calls
@@ -122,11 +110,10 @@ public:
     Vector3 get_character_direction() const;
     Vector3 get_character_direction_plane() const;
     float get_character_movement_dot() const;
-#define GETTERSETTER_GD3D(VAR,TYPE) void set_##VAR##(const TYPE##& set);\
-                                            TYPE get_##VAR##() const
+
+#define GETTERSETTER_GD3D(VAR,TYPE) void set_##VAR(const TYPE& set);\
+                                            TYPE get_##VAR() const
     GETTERSETTER_GD3D(mouse_sensitivity, float);
-    GETTERSETTER_GD3D(walk_speed, float);
-    GETTERSETTER_GD3D(sprint_speed, float);
     GETTERSETTER_GD3D(turn_speed, float);
     GETTERSETTER_GD3D(instant_turn_aiming, bool);
     GETTERSETTER_GD3D(camera_node_path, NodePath);
@@ -134,7 +121,6 @@ public:
     GETTERSETTER_GD3D(camera_boon, Vector3);
     GETTERSETTER_GD3D(camera_predict, float);
     GETTERSETTER_GD3D(camera_predict_speed, float);
-    GETTERSETTER_GD3D(interiors_collision_mask, uint32_t);
     GETTERSETTER_GD3D(aim_collision_mask, uint32_t);
     GETTERSETTER_GD3D(interiors_collision_box_size, Vector3);
     GETTERSETTER_GD3D(interiors_collision_box_centre, Vector3);
@@ -143,6 +129,8 @@ public:
     uint32_t get_visual_collision_mask() const;
     void set_visual_collision_mask(uint32_t p_mask);
 
+    uint32_t get_interiors_collision_mask() const;
+    void set_interiors_collision_mask(uint32_t p_mask);
     Vector3 get_lookat_position() const;
     Node3D* get_aim_node()const;
 

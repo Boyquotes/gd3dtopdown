@@ -69,8 +69,8 @@ public:
 	void make_visible();
 	
 
-#define GETTERSETTER_GD3D(TYPE,VAR) void set_##VAR##(const TYPE##& set);\
-                                            TYPE get_##VAR##() const
+#define GETTERSETTER_GD3D(TYPE,VAR) void set_##VAR(const TYPE& set);\
+                                            TYPE get_##VAR() const
 	GETTERSETTER_GD3D(bool, auto_ignore);
 	GETTERSETTER_GD3D(bool, auto_invisible);
 	GETTERSETTER_GD3D(StringName, shader_param);

@@ -11,7 +11,7 @@ GD3Dvisual_obstacle::~GD3Dvisual_obstacle()
 }
 #define GETSET_GD3D(FUNC) ClassDB::bind_method(D_METHOD("get_"#FUNC), &GD3Dvisual_obstacle::get_##FUNC);\
                         ClassDB::bind_method(D_METHOD("set_"#FUNC, #FUNC), &GD3Dvisual_obstacle::set_##FUNC)
-#define ADDPROP_GD3D(TYPE,PROP) ADD_PROPERTY(PropertyInfo(Variant::##TYPE, #PROP), "set_"#PROP, "get_"#PROP)
+#define ADDPROP_GD3D(TYPE,PROP) ADD_PROPERTY(PropertyInfo(Variant::TYPE, #PROP), "set_"#PROP, "get_"#PROP)
 void GD3Dvisual_obstacle::_bind_methods()
 {
 	//Signals
@@ -275,8 +275,8 @@ void GD3Dvisual_obstacle::_visible_shader_tween(float progress)
 {
 	visible_material->set_shader_parameter(shader_param, progress);
 }
-#define GETTERSETTER_GD3D(TYPE,VAR) void GD3Dvisual_obstacle::set_##VAR##(const TYPE##& set) { VAR = set;}\
-                                            TYPE GD3Dvisual_obstacle::get_##VAR##() const {return VAR ;}
+#define GETTERSETTER_GD3D(TYPE,VAR) void GD3Dvisual_obstacle::set_##VAR(const TYPE& set) { VAR = set;}\
+                                            TYPE GD3Dvisual_obstacle::get_##VAR() const {return VAR ;}
 GETTERSETTER_GD3D(bool, auto_ignore);
 GETTERSETTER_GD3D(bool, auto_invisible);
 GETTERSETTER_GD3D(StringName, shader_param);
