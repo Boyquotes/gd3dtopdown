@@ -8,7 +8,7 @@
 #include "GD3Dtd_character.hpp"
 #include "GD3Dvisual_obstacle.hpp"
 #include "GD3Dinterior_area.hpp"
-
+#include "GD3Dselectable_node.hpp"
 using namespace godot;
 
 void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
@@ -21,6 +21,7 @@ void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
     ClassDB::register_class<GD3Dtd_character>();
     ClassDB::register_class<GD3Dvisual_obstacle>();
     ClassDB::register_class<GD3Dinterior_area>();
+    ClassDB::register_class<GD3Dselectable_node>();
 
 }
 void uninitialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)

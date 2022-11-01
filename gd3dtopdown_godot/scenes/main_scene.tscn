@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cynqy70o8xudk"]
+[gd_scene load_steps=17 format=3 uid="uid://cynqy70o8xudk"]
 
 [ext_resource type="PackedScene" uid="uid://5yy8nwyqhqw8" path="res://scenes/GD3Dexample_char.tscn" id="2_gnal5"]
 [ext_resource type="Script" path="res://scripts/visual_obstacle_init.gd" id="3_73afc"]
@@ -47,6 +47,10 @@ top_radius = 2.0
 bottom_radius = 2.0
 height = 10.0
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_udsyo"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_100tx"]
+
 [node name="MainScene" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -60,10 +64,8 @@ shadow_enabled = true
 
 [node name="GD3Dexample_char" parent="." instance=ExtResource("2_gnal5")]
 turn_speed = 0.2
-camera_node_path = NodePath("../Camera3d")
 camera_boon = Vector3(0, 10, 10)
-interiors_collision_box_size = Vector3(0.5, 0.5, 0.5)
-interiors_collision_box_centre = Vector3(0, 1, 0)
+camera_node = NodePath("../Camera3d")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.07841, 0)
 
 [node name="Camera3d" type="Camera3D" parent="."]
@@ -99,3 +101,12 @@ shape = SubResource("CylinderShape3D_j4uea")
 [node name="MeshInstance3d" type="MeshInstance3D" parent="Column"]
 mesh = SubResource("CylinderMesh_f3l8c")
 skeleton = NodePath("")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(3.67978, 0, 0, 0, 3.7956, 0, 0, 0, 2.28819, 17.0634, 1.35389, -4.94234)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("BoxShape3D_udsyo")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("BoxMesh_100tx")

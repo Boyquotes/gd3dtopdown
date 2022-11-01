@@ -153,7 +153,7 @@ _surfaces = [{
 blend_shape_mode = 0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_2skhp"]
-size = Vector3(7.8006, 4.28403, 23.5726)
+size = Vector3(7.8006, 5.2922, 23.5726)
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_cjc7u"]
 points = PackedVector3Array(-2.22045e-16, 0.176309, -5.88364, 2, 7.70571, -0.236592, 2, 2.4955, -2.78495, 1.94859, 7.97963, -6, 0, 7.82374, -0.147508, -2.22045e-16, 0.176309, -0.147508, 0, 7.82374, -5.88364, 2, 0.295812, -5.79401, 2, 0.295812, -0.237136, 1.95336, 8, -0.0158732, 2, 7.70571, -5.79456)

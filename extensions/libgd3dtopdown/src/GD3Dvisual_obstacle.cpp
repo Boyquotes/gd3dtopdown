@@ -17,7 +17,6 @@ void GD3Dvisual_obstacle::_bind_methods()
 	//Signals
 	ClassDB::bind_method(D_METHOD("init_obstacle"), &GD3Dvisual_obstacle::init_obstacle);
 	ClassDB::bind_method(D_METHOD("uninit_obstacle"), &GD3Dvisual_obstacle::uninit_obstacle);
-	
 	ClassDB::bind_method(D_METHOD("obstacle_entered"), &GD3Dvisual_obstacle::obstacle_entered);
 	ClassDB::bind_method(D_METHOD("obstacle_entered_char"), &GD3Dvisual_obstacle::obstacle_entered_char);
 	ClassDB::bind_method(D_METHOD("obstacle_exited"), &GD3Dvisual_obstacle::obstacle_exited);
@@ -106,6 +105,7 @@ void GD3Dvisual_obstacle::init_obstacle()
 			tw_invisible->stop();
 			tw_visible->stop();
 		}
+		
 		shadow_mesh = memnew(MeshInstance3D);
 		add_child(shadow_mesh);
 		shadow_mesh->set_owner(this);
@@ -141,8 +141,8 @@ TypedArray<GD3Dinterior_area> GD3Dvisual_obstacle::get_interior_area_parents(Nod
 	Node3D* n_parent = nd->get_parent_node_3d();
 	
 	if (n_parent == nullptr) return n_arr;
-	GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(n_parent);
-	if(area != nullptr && area->get_class() == "GD3Dinterior_area")
+	GD3Dinterior_area* area = dynamic_cast<GD3Dinterior_area*>(n_parent);
+	if(area != nullptr)
 		n_arr.append(area);
 
 	n_arr.append_array(get_interior_area_parents(n_parent));
@@ -275,13 +275,18 @@ void GD3Dvisual_obstacle::_visible_shader_tween(float progress)
 {
 	visible_material->set_shader_parameter(shader_param, progress);
 }
-#define GETTERSETTER_GD3D(TYPE,VAR) void GD3Dvisual_obstacle::set_##VAR(const TYPE& set) { VAR = set;}\
-                                            TYPE GD3Dvisual_obstacle::get_##VAR() const {return VAR ;}
-GETTERSETTER_GD3D(bool, auto_ignore);
-GETTERSETTER_GD3D(bool, auto_invisible);
-GETTERSETTER_GD3D(StringName, shader_param);
-GETTERSETTER_GD3D(float, shader_param_min);
-GETTERSETTER_GD3D(float, shader_param_max);
-GETTERSETTER_GD3D(float, shader_duration);
 
-#undef GETTERSETTER_GD3D
+void GD3Dvisual_obstacle::set_auto_ignore(const bool set) { auto_ignore = set; }
+bool GD3Dvisual_obstacle::get_auto_ignore() const { return auto_ignore; }
+void GD3Dvisual_obstacle::set_auto_invisible(const bool set) { auto_invisible = set; }
+bool GD3Dvisual_obstacle::get_auto_invisible() const {return auto_invisible;}
+void GD3Dvisual_obstacle::set_shader_param(const StringName& set) { shader_param = set; }
+StringName GD3Dvisual_obstacle::get_shader_param() const {return shader_param;}
+void GD3Dvisual_obstacle::set_shader_param_min(const float set) { shader_param_min = set; }
+float GD3Dvisual_obstacle::get_shader_param_min() const {return shader_param_min;}
+void GD3Dvisual_obstacle::set_shader_param_max(const float set) { shader_param_max = set; }
+float GD3Dvisual_obstacle::get_shader_param_max() const {return shader_param_max;}
+void GD3Dvisual_obstacle::set_shader_duration(const float set) { shader_duration = set; }
+float GD3Dvisual_obstacle::get_shader_duration( ) const { return shader_duration; }
+
+

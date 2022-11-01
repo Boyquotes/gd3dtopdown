@@ -22,11 +22,11 @@
 
 #include <godot_cpp/classes/area3d.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
-#include <godot_cpp/classes/shape3d.hpp>
 #include <godot_cpp/classes/box_shape3d.hpp>
 
 #include "GD3Dvisual_obstacle.hpp"
 #include "GD3Dinterior_area.hpp"
+#include "GD3Dselectable_node.hpp"
 
 using namespace godot;
 
@@ -53,7 +53,7 @@ private:
     //Aiming and camera properties
     bool is_aiming;
     Vector3 lookat_position;
-    NodePath camera_node_path;
+    NodePath camera_node;
     Camera3D* camera;
     Vector3 camera_boon = Vector3(0, 15, 10);
     float camera_predict = 1;
@@ -65,8 +65,8 @@ private:
     Node3D* old_aim_node;
 
     //Visual obstacles
-    Vector3 interiors_collision_box_size = Vector3(0.1f,0.1f,0.1f);
-    Vector3 interiors_collision_box_centre = Vector3(0,1,0);
+    NodePath  interiors_collision_area_node;
+    NodePath  visual_collision_area_node;
     Area3D* interiors_collision_area;
     uint32_t interiors_collision_mask = 0;
     uint32_t visual_collision_mask = 0;
@@ -84,11 +84,10 @@ public:
     virtual void _input(const Ref<InputEvent>& p_event) override;
     virtual void _physics_process(double delta) override;
 
-
     void character_init();
     void character_uninit();
-    void character_move(double delta, const Vector2& input_dir, const bool aiming, const float speed,const float move_lerp);
- 
+
+    void character_move(const double delta, const Vector2& input_dir, const bool aiming, const float speed,const float move_lerp);
     void rotate_camera_mouse(const Ref<InputEvent>& p_event);
     void rotate_camera_mouse_aimlock(const Ref<InputEvent>& p_event);
     void rotate_camera(const Vector2& motion);
@@ -101,7 +100,6 @@ public:
     //Signal Calls
     void enter_visual_event(Object* body);
     void exit_visual_event(Object* body);
-
     void enter_interior_event(Object* area);
     void exit_interior_event(Object* area);
 
@@ -110,29 +108,35 @@ public:
     Vector3 get_character_direction() const;
     Vector3 get_character_direction_plane() const;
     float get_character_movement_dot() const;
-
-#define GETTERSETTER_GD3D(VAR,TYPE) void set_##VAR(const TYPE& set);\
-                                            TYPE get_##VAR() const
-    GETTERSETTER_GD3D(mouse_sensitivity, float);
-    GETTERSETTER_GD3D(turn_speed, float);
-    GETTERSETTER_GD3D(instant_turn_aiming, bool);
-    GETTERSETTER_GD3D(camera_node_path, NodePath);
-    GETTERSETTER_GD3D(invert_camera_movement, bool);
-    GETTERSETTER_GD3D(camera_boon, Vector3);
-    GETTERSETTER_GD3D(camera_predict, float);
-    GETTERSETTER_GD3D(camera_predict_speed, float);
-    GETTERSETTER_GD3D(aim_collision_mask, uint32_t);
-    GETTERSETTER_GD3D(interiors_collision_box_size, Vector3);
-    GETTERSETTER_GD3D(interiors_collision_box_centre, Vector3);
-#undef GETTERSETTER_GD3D
-
-    uint32_t get_visual_collision_mask() const;
-    void set_visual_collision_mask(uint32_t p_mask);
-
-    uint32_t get_interiors_collision_mask() const;
-    void set_interiors_collision_mask(uint32_t p_mask);
     Vector3 get_lookat_position() const;
-    Node3D* get_aim_node()const;
+    Node3D* get_aim_node() const;
 
+    void set_visual_collision_mask(const uint32_t p_mask);
+    uint32_t get_visual_collision_mask() const;
+    void set_interiors_collision_mask(const uint32_t p_mask);
+    uint32_t get_interiors_collision_mask() const;
+
+    void set_mouse_sensitivity(const float set);
+    float get_mouse_sensitivity() const;
+    void set_turn_speed(const float set);
+    float get_turn_speed() const;
+    void set_instant_turn_aiming(const bool);
+    bool get_instant_turn_aiming() const;
+    void set_camera_node(const NodePath& set);
+    NodePath get_camera_node() const;
+    void set_interiors_collision_area_node(const NodePath& set);
+    NodePath get_interiors_collision_area_node() const;
+    void set_visual_collision_area_node(const NodePath& set);
+    NodePath get_visual_collision_area_node() const;
+    void set_invert_camera_movement(const bool);
+    bool get_invert_camera_movement() const;
+    void set_camera_boon(const Vector3& set);
+    Vector3 get_camera_boon() const;
+    void set_camera_predict(const float set);
+    float get_camera_predict() const;
+    void set_camera_predict_speed(const float set);
+    float get_camera_predict_speed() const;
+    void set_aim_collision_mask(const uint32_t set);
+    uint32_t get_aim_collision_mask() const;
 };
 #endif 

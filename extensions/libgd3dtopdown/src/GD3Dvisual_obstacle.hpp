@@ -67,18 +67,21 @@ public:
 	void obstacle_exited_char(uint32_t ignoremask);
 	void make_invisible();
 	void make_visible();
-	
-
-#define GETTERSETTER_GD3D(TYPE,VAR) void set_##VAR(const TYPE& set);\
-                                            TYPE get_##VAR() const
-	GETTERSETTER_GD3D(bool, auto_ignore);
-	GETTERSETTER_GD3D(bool, auto_invisible);
-	GETTERSETTER_GD3D(StringName, shader_param);
-	GETTERSETTER_GD3D(float, shader_param_min);
-	GETTERSETTER_GD3D(float, shader_param_max);
-	GETTERSETTER_GD3D(float, shader_duration);
-#undef GETTERSETTER_GD3D
 	TypedArray<GD3Dinterior_area> get_interior_area_parents(Node3D* nd);
+	
+	//Setter and getters
+	void set_auto_ignore(const bool set);
+	bool get_auto_ignore() const;
+	void set_auto_invisible(const bool set);
+	bool get_auto_invisible() const;
+	void set_shader_param(const StringName& set);
+	StringName get_shader_param() const;
+	void set_shader_param_min(const float set);
+	float get_shader_param_min() const;
+	void set_shader_param_max(const float set);
+	float get_shader_param_max() const;
+	void set_shader_duration(const float set);
+	float get_shader_duration() const;
 };
 
 #endif 
