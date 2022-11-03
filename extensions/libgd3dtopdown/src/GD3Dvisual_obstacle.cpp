@@ -48,7 +48,9 @@ void GD3Dvisual_obstacle::_bind_methods()
 
 void GD3Dvisual_obstacle::_ready()
 {
+#ifdef DEBUG_ENABLED
 	if (Engine::get_singleton()->is_editor_hint()) return;
+#endif
 	init_obstacle();
 }
 void GD3Dvisual_obstacle::_exit_tree()

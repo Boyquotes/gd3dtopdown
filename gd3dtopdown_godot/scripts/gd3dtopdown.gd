@@ -4,8 +4,20 @@ extends GD3Dtd_character
 var SPEED = 5.0
 var MOVE_LERP = 0.25
 
-func _input(event):
+#If the _ready function is declared it overrides the _ready function
+#should this be needed, dont forget to initialize the character with character_init()
+
+#func _ready():
+#	character_init()	
+
+#Camera movements can be locked when aiming by using the *_aimlock functions
+#if the function name includes *_mouse_* it handles the mouse movement
+#if it doesn't a Vector2 can be passed as an argument for the displacement of the camera
+func _unhandled_input(event):
 	rotate_camera_mouse_aimlock(event)
+#here the character_move function is used, it takes the delta, a Vector2 as movement
+#wether the character is aiming to the mouse position, the movement speed and a
+#smoothing value
 func _physics_process(delta):
 	var movement = Input.get_vector("move_left","move_right","move_forward","move_back")
 	

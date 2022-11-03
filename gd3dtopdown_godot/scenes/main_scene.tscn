@@ -1,9 +1,9 @@
-[gd_scene load_steps=18 format=3 uid="uid://cynqy70o8xudk"]
+[gd_scene load_steps=18 format=3 uid="uid://3u3l42q5jirt"]
 
 [ext_resource type="PackedScene" uid="uid://5yy8nwyqhqw8" path="res://scenes/GD3Dexample_char.tscn" id="2_gnal5"]
 [ext_resource type="Shader" path="res://shaders/dissolve.gdshader" id="3_ae1d7"]
 [ext_resource type="PackedScene" uid="uid://deatvd455ffyp" path="res://scenes/buildings/house.tscn" id="3_ypaos"]
-[ext_resource type="Script" path="res://scenes/selectable_node.gd" id="4_bl0vp"]
+[ext_resource type="Script" path="res://scripts/selectable_node.gd" id="4_bl0vp"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mlj0e"]
 

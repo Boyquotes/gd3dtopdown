@@ -209,7 +209,9 @@ void GD3Dtd_character::character_uninit()
 
 void GD3Dtd_character::_ready()
 {
+#ifdef DEBUG_ENABLED
     if (Engine::get_singleton()->is_editor_hint()) return;
+#endif 
     character_init();
 }
 void GD3Dtd_character::_exit_tree()
@@ -283,8 +285,8 @@ void GD3Dtd_character::character_move(const double delta, const Vector2& input_d
     Vector3 front_pos = -get_global_transform().get_basis().get_column(2);
     if (direction.is_zero_approx())
     {
-        vel.x = Math::move_toward(vel.x, 0, speed);
-        vel.z = Math::move_toward(vel.z, 0, speed);
+        vel.x = Math::move_toward(vel.x, 0, speed) ;
+        vel.z = Math::move_toward(vel.z, 0, speed) ;
         lookat_pos.x += front_pos.x;
         lookat_pos.z += front_pos.z;
     }
