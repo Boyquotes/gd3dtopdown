@@ -23,7 +23,7 @@ protected:
 public:
 
 	void on_selected();
-	void on_deselected();
+	void on_unselected();
 	bool is_selected();
 };
 

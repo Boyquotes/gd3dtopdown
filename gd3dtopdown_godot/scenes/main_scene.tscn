@@ -1,9 +1,9 @@
-[gd_scene load_steps=17 format=3 uid="uid://cynqy70o8xudk"]
+[gd_scene load_steps=18 format=3 uid="uid://cynqy70o8xudk"]
 
 [ext_resource type="PackedScene" uid="uid://5yy8nwyqhqw8" path="res://scenes/GD3Dexample_char.tscn" id="2_gnal5"]
-[ext_resource type="Script" path="res://scripts/visual_obstacle_init.gd" id="3_73afc"]
 [ext_resource type="Shader" path="res://shaders/dissolve.gdshader" id="3_ae1d7"]
 [ext_resource type="PackedScene" uid="uid://deatvd455ffyp" path="res://scenes/buildings/house.tscn" id="3_ypaos"]
+[ext_resource type="Script" path="res://scenes/selectable_node.gd" id="4_bl0vp"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mlj0e"]
 
@@ -49,7 +49,11 @@ height = 10.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_udsyo"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8a03h"]
+albedo_color = Color(0.360784, 0.733333, 0.403922, 1)
+
 [sub_resource type="BoxMesh" id="BoxMesh_100tx"]
+material = SubResource("StandardMaterial3D_8a03h")
 
 [node name="MainScene" type="Node3D"]
 
@@ -58,31 +62,32 @@ environment = SubResource("Environment_14mf4")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
 transform = Transform3D(0.0125053, -0.706501, -0.707602, 0.120879, -0.701399, 0.702444, -0.992588, -0.0943187, 0.0766302, 4.20956, 18.1549, -8.58107)
-light_color = Color(0.713726, 0.713726, 0.713726, 1)
+light_color = Color(0.74902, 0.690196, 0.772549, 1)
 light_energy = 0.47
 shadow_enabled = true
 
 [node name="GD3Dexample_char" parent="." instance=ExtResource("2_gnal5")]
-turn_speed = 0.2
-camera_boon = Vector3(0, 10, 10)
 camera_node = NodePath("../Camera3d")
+interiors_collision_mask = 2
+visual_collision_mask = 2
+aim_collision_mask = 4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.07841, 0)
 
 [node name="Camera3d" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.24536, 8.79923)
 
 [node name="house" parent="." instance=ExtResource("3_ypaos")]
-transform = Transform3D(-0.279728, 0, -0.960079, 0, 1, 0, 0.960079, 0, -0.279728, 21.885, 0.5, -17.6008)
+transform = Transform3D(-0.279728, 0, -0.960079, 0, 1, 0, 0.960079, 0, -0.279728, 10.2724, 0.5, -10.6991)
 
-[node name="MeshInstance3d2" type="MeshInstance3D" parent="."]
-transform = Transform3D(14.4438, 0, 0, 0, 1, 0, 0, 0, 11.5976, 2.66664, 0, 0)
+[node name="Ground" type="MeshInstance3D" parent="."]
+transform = Transform3D(2.31716, 0, 0, 0, 1, 0, 0, 0, 3.33244, 2.66664, 0, -14.5142)
 mesh = SubResource("BoxMesh_xlmck")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3d2"]
+[node name="StaticBody3D" type="StaticBody3D" parent="Ground"]
 collision_layer = 5
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3d2/StaticBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_st2nk")
 
 [node name="Column" type="GD3Dvisual_obstacle" parent="."]
@@ -93,7 +98,6 @@ shader_param_max = 1.0
 shader_duration = 1.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.36168, 4.66307, -3.00726)
 collision_layer = 7
-script = ExtResource("3_73afc")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Column"]
 shape = SubResource("CylinderShape3D_j4uea")
@@ -102,8 +106,10 @@ shape = SubResource("CylinderShape3D_j4uea")
 mesh = SubResource("CylinderMesh_f3l8c")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="."]
+[node name="StaticBody3D" type="GD3Dselectable_node" parent="."]
 transform = Transform3D(3.67978, 0, 0, 0, 3.7956, 0, 0, 0, 2.28819, 17.0634, 1.35389, -4.94234)
+collision_layer = 5
+script = ExtResource("4_bl0vp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 shape = SubResource("BoxShape3D_udsyo")

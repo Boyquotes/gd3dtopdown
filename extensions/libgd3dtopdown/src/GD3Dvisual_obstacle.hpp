@@ -7,6 +7,7 @@
 #include <godot_cpp/core/binder_common.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/static_body3d.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/geometry_instance3d.hpp>
@@ -58,6 +59,9 @@ private:
 	void _visible_shader_tween(float progress);
 
 public:
+
+	virtual void _ready() override;
+	virtual void _exit_tree() override;
 
 	void init_obstacle();
 	void uninit_obstacle();

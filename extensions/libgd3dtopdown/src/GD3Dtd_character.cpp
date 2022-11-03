@@ -11,6 +11,7 @@ GD3Dtd_character::GD3Dtd_character()
 
 GD3Dtd_character::~GD3Dtd_character()
 {
+    character_uninit();
 }
 
 #define GETSET_GD3D(FUNC) ClassDB::bind_method(D_METHOD("get_"#FUNC), &GD3Dtd_character::get_##FUNC);\
@@ -18,9 +19,10 @@ GD3Dtd_character::~GD3Dtd_character()
 #define ADDPROP_GD3D(PROP,TYPE) ADD_PROPERTY(PropertyInfo(Variant::TYPE, #PROP), "set_"#PROP, "get_"#PROP)
 void GD3Dtd_character::_bind_methods()
 {
-  
-    ClassDB::bind_method(D_METHOD("character_init"), &GD3Dtd_character::character_init);
-    ClassDB::bind_method(D_METHOD("rotate_camera", "rotation_Vector2"), &GD3Dtd_character::rotate_camera);
+    
+    //ClassDB::bind_virtual_method("GD3Dtd_character", "_ready", &GD3Dtd_character::_ready);
+    ClassDB::bind_method( D_METHOD("character_init"), &GD3Dtd_character::character_init);
+    ClassDB::bind_method( D_METHOD("rotate_camera", "rotation_Vector2"), &GD3Dtd_character::rotate_camera);
     ClassDB::bind_method(D_METHOD("rotate_camera_aimlock","rotation_Vector2"), &GD3Dtd_character::rotate_camera_aimlock);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse", "event"), &GD3Dtd_character::rotate_camera_mouse);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse_aimlock","event"), &GD3Dtd_character::rotate_camera_mouse_aimlock);
@@ -68,37 +70,41 @@ void GD3Dtd_character::_bind_methods()
     ADD_PROPERTY(PropertyInfo(Variant::INT, "visual_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_visual_collision_mask", "get_visual_collision_mask");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "aim_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_aim_collision_mask", "get_aim_collision_mask");
 }
-#undef GETSET_GD3D
 #undef ADDPROP_GD3D
+#undef GETSET_GD3D
 
-//Initializer functions, get pointers to Input and project settings. Set gravity value
-void GD3Dtd_character::character_init()
-{
-    if (initialized) return;
-#ifdef DEBUG
-    #define DEBUG_WARN_GD3D(msg) WARN_PRINT(#msg)
+#ifdef DEBUG_ENABLED
+    #define DEBUG_WARN_GD3D(msg) WARN_PRINT(msg)
 #else
     #define DEBUG_WARN_GD3D(msg) 
 #endif
+//Initializer functions, get pointers to Input and project settings. Set gravity value
+void GD3Dtd_character::character_init()
+{
+
+    if (initialized) return;
+    initialized = true;
+    default_interior_shape = false;
+    default_visible_shape = false;
+    gravity = 9.8f;
+
 #pragma region Child_node_initialization
-
-
     //Pointers and instancing
     ProjectSettings* p_settings = ProjectSettings::get_singleton();
     if (p_settings == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain project settings pointer, didnt initialize"); }
     
-    gravity = 9.8f;
     Variant grav = p_settings->get_setting("physics/3d/default_gravity");
     if (grav.get_type() == Variant::INT || grav.get_type() == Variant::FLOAT)
     {
         gravity = float(grav);
-        DEBUG_WARN_GD3D("Got gravity from user settings physics/3d/default_gravity")
+        DEBUG_WARN_GD3D("Got gravity from user settings physics/3d/default_gravity");
     }
     if(!camera_node.is_empty())
         camera = get_node<Camera3D>(camera_node);
+     
 
-    if (camera == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain camera pointer, didnt initialize"); }
-   
+    if (camera == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain camera pointer, wont initialize"); }
+    camera->set_as_top_level(true);
     if(!visual_collision_area_node.is_empty())
         visual_collision_area = get_node<Area3D>(visual_collision_area_node);
     if(!interiors_collision_area_node.is_empty())
@@ -119,6 +125,9 @@ void GD3Dtd_character::character_init()
         visual_col_shp->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
         visual_collision_area->set_monitoring(true);
         visual_collision_area->set_monitorable(true);
+
+        visual_collision_area->set_name("Visual_obstacle_detector");
+        default_visible_shape = true;
     }
     if (visual_collision_area == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain visual_collision_area pointer, didnt initialize"); }
 
@@ -141,6 +150,9 @@ void GD3Dtd_character::character_init()
         interiors_collision_area->set_position(Vector3(0, 1, 0));
         interiors_collision_area->set_monitoring(true);
         interiors_collision_area->set_monitorable(true);
+
+        interiors_collision_area->set_name("Interiors_detector");
+        default_interior_shape = true;
     }
     if (interiors_collision_area == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain interiors_collision_area pointer, didnt initialize"); }
 
@@ -164,19 +176,19 @@ void GD3Dtd_character::character_init()
 
 
 #pragma endregion Initialization_warnings
-#undef DEBUG_WARN_GD3D
-
-    initialized = true;
 }
+#undef DEBUG_WARN_GD3D
 
 void GD3Dtd_character::character_uninit()
 {
+    if (!initialized) return;
     if (visual_collision_area != nullptr)
     {
         if(visual_collision_area->is_connected("body_entered", Callable(this, "enter_visual_event")))
             visual_collision_area->disconnect("body_entered", Callable(this, "enter_visual_event"));
         if (visual_collision_area->is_connected("body_exited", Callable(this, "exit_visual_event")))
             visual_collision_area->disconnect("body_exited", Callable(this, "exit_visual_event"));
+        if (default_visible_shape) memdelete(visual_collision_area);
     }
     if (interiors_collision_area != nullptr)
     {
@@ -184,6 +196,7 @@ void GD3Dtd_character::character_uninit()
             interiors_collision_area->disconnect("area_entered", Callable(this, "enter_interior_event"));
         if (interiors_collision_area->is_connected("area_exited", Callable(this, "exit_interior_event")))
             interiors_collision_area->disconnect("area_exited", Callable(this, "exit_interior_event"));
+        if (default_interior_shape) memdelete(interiors_collision_area);
     }
 
     visual_collision_area = nullptr;
@@ -193,23 +206,15 @@ void GD3Dtd_character::character_uninit()
     initialized = false;
 }
 
-/*Overriden functions _ready, _inputand _physics_process seem to be called
-on object instantiation in the editor but are not called during the game (Tested in debug),
-this makes getting pointers to singletos or executing code impossible from them
-Calling Engine::get_singleton()->is_editor_hint() does not solve the issue as the functions are not ticking when running the game
-*/
+
 void GD3Dtd_character::_ready()
 {
-   // if (Engine::get_singleton()->is_editor_hint()) return;
+    if (Engine::get_singleton()->is_editor_hint()) return;
+    character_init();
 }
-
-void GD3Dtd_character::_input(const Ref<InputEvent>& p_event)
+void GD3Dtd_character::_exit_tree()
 {
-   // if (Engine::get_singleton()->is_editor_hint()) return;
-}
-void GD3Dtd_character::_physics_process(double delta)
-{
-   // if (Engine::get_singleton()->is_editor_hint()) return;
+    character_uninit();
 }
 
 #pragma region Camera_input_functions
@@ -321,7 +326,6 @@ void GD3Dtd_character::character_move(const double delta, const Vector2& input_d
     character_direction = vel.normalized();
     character_direction_plane =Vector3(character_direction.x,char_pos.y,character_direction.z);
     character_movement_dot = character_forward.dot(character_direction_plane);
-
 }
 #pragma endregion Character_movement_function
 
@@ -365,7 +369,7 @@ void GD3Dtd_character::handle_aim_node(Node3D* nd)
     {
         GD3Dselectable_node* selectable = dynamic_cast<GD3Dselectable_node*>(old_aim_node);
         if (selectable != nullptr)
-            selectable->on_deselected();
+            selectable->on_unselected();
     }
 
     old_aim_node = nd;
@@ -418,7 +422,6 @@ uint32_t GD3Dtd_character::get_visual_collision_mask() const
         msk = visual_collision_area->get_collision_mask();
     return msk;
 }
-
 void GD3Dtd_character::set_interiors_collision_mask(uint32_t p_mask)
 {
     interiors_collision_mask = p_mask;
@@ -433,6 +436,9 @@ uint32_t GD3Dtd_character::get_interiors_collision_mask() const
         msk = interiors_collision_area->get_collision_mask();
     return msk;
 }
+void GD3Dtd_character::set_camera_node(const NodePath& set){ camera_node = set;}
+NodePath GD3Dtd_character::get_camera_node() const { return camera_node; }
+
 Vector3 GD3Dtd_character::get_lookat_position() const { return lookat_position; }
 Node3D* GD3Dtd_character::get_aim_node()const { return old_aim_node; }
 Vector3 GD3Dtd_character::get_character_forward() const { return character_forward; }
@@ -446,8 +452,6 @@ void GD3Dtd_character::set_turn_speed(const float set) { turn_speed = set; }
 float GD3Dtd_character::get_turn_speed() const { return turn_speed; }
 void GD3Dtd_character::set_instant_turn_aiming(const bool set) { instant_turn_aiming = set; }
 bool GD3Dtd_character::get_instant_turn_aiming() const { return instant_turn_aiming; }
-void GD3Dtd_character::set_camera_node(const NodePath& set) { camera_node = set; }
-NodePath GD3Dtd_character::get_camera_node() const { return camera_node; }
 void  GD3Dtd_character::set_interiors_collision_area_node(const NodePath& set) { interiors_collision_area_node = set; }
 NodePath  GD3Dtd_character::get_interiors_collision_area_node() const { return interiors_collision_area_node; }
 void  GD3Dtd_character::set_visual_collision_area_node(const NodePath& set) { visual_collision_area_node = set; }

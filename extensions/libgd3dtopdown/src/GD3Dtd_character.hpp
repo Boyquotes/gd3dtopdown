@@ -8,10 +8,10 @@
 
 #include <godot_cpp/classes/character_body3d.hpp>
 
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
-
 #include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 
@@ -43,7 +43,8 @@ protected:
 private:
 
     bool initialized;
-
+    bool default_interior_shape;
+    bool default_visible_shape;
     //Values
     float gravity = 9.8f;
     float mouse_sensitivity = 0.2f;
@@ -81,8 +82,7 @@ private:
 public:
 
     virtual void _ready() override;
-    virtual void _input(const Ref<InputEvent>& p_event) override;
-    virtual void _physics_process(double delta) override;
+    virtual void _exit_tree() override;
 
     void character_init();
     void character_uninit();

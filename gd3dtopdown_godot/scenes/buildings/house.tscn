@@ -1,6 +1,5 @@
-[gd_scene load_steps=46 format=3 uid="uid://deatvd455ffyp"]
+[gd_scene load_steps=45 format=3 uid="uid://deatvd455ffyp"]
 
-[ext_resource type="Script" path="res://scripts/visual_obstacle_init.gd" id="1_fjylh"]
 [ext_resource type="Shader" path="res://shaders/dissolve.gdshader" id="2_3ckos"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_08g0c"]
@@ -334,11 +333,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(-0.25, 0, -1.30337e-06, 0, 1, 9.75782e-19, 8.14604e-08, 0, -4, -3.85154, 2.37115, -11.4353)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_b"]
 shape = SubResource("ConvexPolygonShape3D_qr38n")
@@ -352,11 +350,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(0.25, 0, 0, 0, 1, 0, 0, 0, 4, 4.14846, 2.37115, 12.5647)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_f"]
 shape = SubResource("ConvexPolygonShape3D_dqthf")
@@ -370,11 +367,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(0, 0, 4, 0, 1, 1.13687e-12, -0.25, 0, 0, 4.14846, 2.37115, -11.4353)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_r"]
 shape = SubResource("ConvexPolygonShape3D_h4jkw")
@@ -388,11 +384,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(1.3411e-07, 0, -4, 2.71051e-20, 1, -1.13687e-12, 0.25, 0, 2.14577e-06, -3.85154, 2.37115, 12.5647)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_l"]
 shape = SubResource("ConvexPolygonShape3D_jj1s8")
@@ -406,11 +401,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(1.49012e-07, -1, 0, 0.25, 5.96046e-07, 0, 0, 0, 4, 4.14846, 2.37115, 12.5647)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Top_level_floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6655, 6.00717, -3.00422)
@@ -442,11 +436,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(1.49012e-07, -1, 0, 0.25, 5.96046e-07, 0, 0, 0, 4, 4.01503, 1.51578, 12.4561)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/TopFloor_area/Roof"]
 shape = SubResource("ConvexPolygonShape3D_cjc7u")
@@ -460,11 +453,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(0, 0, 4, 0, 1, 0, -0.25, 0, 0, -0.25, 0, -4.00001)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_bottom_r"]
 shape = SubResource("ConvexPolygonShape3D_c5wqq")
@@ -478,11 +470,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(-0.25, 0, -1.30337e-06, 0, 1, 0, 8.14603e-08, 0, -4, -8.25, 0, -4.00001)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_bottom_b"]
 shape = SubResource("ConvexPolygonShape3D_jd38k")
@@ -496,11 +487,10 @@ auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(1.3411e-07, 0, -4, 0, 1, 0, 0.25, 0, 2.14577e-06, -8.25, 0, 20)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_bottom_l"]
 shape = SubResource("ConvexPolygonShape3D_m6cgo")
@@ -513,13 +503,11 @@ skeleton = NodePath("")
 auto_ignore = true
 auto_invisible = true
 shader_param = &"ammount"
-shader_param_min = 0.000190765
 shader_param_max = 1.0
-shader_duration = 1.0
+shader_duration = 0.5
 transform = Transform3D(0.25, 0, 0, 0, 1, 0, 0, 0, 4, -0.25, 0, 20)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="Wall_004001" type="MeshInstance3D" parent="Wall_door"]
 mesh = SubResource("ArrayMesh_tdb7v")
@@ -541,7 +529,6 @@ shape = SubResource("BoxShape3D_powql")
 transform = Transform3D(1.49012e-07, -1, 0, 0.25, 5.96046e-07, 0, 0, 0, 4, -0.25, 4, 20)
 collision_layer = 7
 collision_mask = 0
-script = ExtResource("1_fjylh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Stairs"]
 shape = SubResource("ConvexPolygonShape3D_smqor")

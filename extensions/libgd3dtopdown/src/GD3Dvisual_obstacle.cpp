@@ -3,6 +3,8 @@
 GD3Dvisual_obstacle::GD3Dvisual_obstacle()
 {
 	initialized = false;
+	visible_mesh = nullptr;
+	shadow_mesh = nullptr;
 }
 
 GD3Dvisual_obstacle::~GD3Dvisual_obstacle()
@@ -14,7 +16,6 @@ GD3Dvisual_obstacle::~GD3Dvisual_obstacle()
 #define ADDPROP_GD3D(TYPE,PROP) ADD_PROPERTY(PropertyInfo(Variant::TYPE, #PROP), "set_"#PROP, "get_"#PROP)
 void GD3Dvisual_obstacle::_bind_methods()
 {
-	//Signals
 	ClassDB::bind_method(D_METHOD("init_obstacle"), &GD3Dvisual_obstacle::init_obstacle);
 	ClassDB::bind_method(D_METHOD("uninit_obstacle"), &GD3Dvisual_obstacle::uninit_obstacle);
 	ClassDB::bind_method(D_METHOD("obstacle_entered"), &GD3Dvisual_obstacle::obstacle_entered);
@@ -39,19 +40,30 @@ void GD3Dvisual_obstacle::_bind_methods()
 	ADD_SIGNAL(MethodInfo("visual_disappear_signal", PropertyInfo(Variant::OBJECT, "object")));
 	ADD_SIGNAL(MethodInfo("visual_appear_signal", PropertyInfo(Variant::OBJECT, "object")));
 
-
 	ClassDB::bind_method(D_METHOD("_invisible_shader_tween"), &GD3Dvisual_obstacle::_invisible_shader_tween);
 	ClassDB::bind_method(D_METHOD("_visible_shader_tween"), &GD3Dvisual_obstacle::_visible_shader_tween);
 }
 #undef GETSET_GD3D
 #undef ADDPROP_GD3D
 
+void GD3Dvisual_obstacle::_ready()
+{
+	if (Engine::get_singleton()->is_editor_hint()) return;
+	init_obstacle();
+}
+void GD3Dvisual_obstacle::_exit_tree()
+{
+	uninit_obstacle();
+}
+#ifdef DEBUG_ENABLED
+#define DEBUG_WARN_GD3D(msg) WARN_PRINT(msg)
+#else
+#define DEBUG_WARN_GD3D(msg) 
+#endif
 void GD3Dvisual_obstacle::init_obstacle()
 {
 	if (initialized) return;
-	visible_mesh = nullptr;
-	shadow_mesh = nullptr;
-
+	initialized = true;
 
 	entered_by_char = false;
 	under_area = false;
@@ -62,20 +74,17 @@ void GD3Dvisual_obstacle::init_obstacle()
 
 	collision_layer = get_collision_layer();
 
-	if (!auto_invisible)
-	{
-		initialized = true;
-		return;
-	}
+	if (!auto_invisible) return;
 
 #pragma region create_shadow_mesh
+	
 	TypedArray<Node> cols = get_children();
 	if (cols.size() < 1) return;
 	for (int64_t i = 0; i < cols.size(); i++)
 	{
 		MeshInstance3D* n_child = cast_to<MeshInstance3D>(cols[i]);
-		if (n_child == nullptr) continue;
-		visible_mesh = n_child;
+
+		if (n_child != nullptr) visible_mesh = n_child;
 	}
 	if(visible_mesh != nullptr && auto_invisible)
 	{
@@ -83,16 +92,12 @@ void GD3Dvisual_obstacle::init_obstacle()
 		if (!visible_material.is_valid())
 		{
 			use_shader = false;
-#ifdef DEBUG
-			WARN_PRINT("Could not get valid shader material in meshInstance, will use use set_visible()")
-#endif 
+			DEBUG_WARN_GD3D(" " + godot::String(this->get_name()) + ": Could not get valid shader material in meshInstance, will use use set_visible()");
 		}
 		else if(!visible_material.is_valid() && visible_material->get_shader_parameter(shader_param) == Variant())
 		{
 			use_shader = false;
-#ifdef DEBUG
-			WARN_PRINT("Could not get specified shader parameter, will use use set_visible()")
-#endif 
+			DEBUG_WARN_GD3D(" "+ godot::String(this->get_name()) + ": Could not get specified shader parameter, will use set_visible()");
 		}else
 		{
 			use_shader = true;
@@ -113,7 +118,6 @@ void GD3Dvisual_obstacle::init_obstacle()
 		shadow_mesh->set_material_override(memnew(Material));
 		visible_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
 		shadow_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_SHADOWS_ONLY);
-
 	}
 #pragma endregion create_shadow_mesh
 	
@@ -132,18 +136,18 @@ void GD3Dvisual_obstacle::init_obstacle()
 		area->connect("entered_signal_mask", Callable(this, "obstacle_entered"));
 		area->connect("exited_signal_mask", Callable(this, "obstacle_exited"));
 	}
-	initialized = true;
-
 }
+#undef DEBUG_WARN_GD3D
 TypedArray<GD3Dinterior_area> GD3Dvisual_obstacle::get_interior_area_parents(Node3D* nd)
 {
 	TypedArray<GD3Dinterior_area> n_arr = {};
 	Node3D* n_parent = nd->get_parent_node_3d();
 	
 	if (n_parent == nullptr) return n_arr;
+
 	GD3Dinterior_area* area = dynamic_cast<GD3Dinterior_area*>(n_parent);
-	if(area != nullptr)
-		n_arr.append(area);
+
+	if(area != nullptr) n_arr.append(area);
 
 	n_arr.append_array(get_interior_area_parents(n_parent));
 	
@@ -151,6 +155,9 @@ TypedArray<GD3Dinterior_area> GD3Dvisual_obstacle::get_interior_area_parents(Nod
 }
 void GD3Dvisual_obstacle::uninit_obstacle()
 {
+	if (!initialized) return;
+	initialized = false;
+	
 	if (shadow_mesh != nullptr) memdelete(shadow_mesh);
 	if (!visible_material.is_null()) visible_material.unref();
 
@@ -169,7 +176,6 @@ void GD3Dvisual_obstacle::uninit_obstacle()
 	parent_interior_areas.clear();
 	shadow_mesh = nullptr;
 	visible_mesh = nullptr;
-	initialized = false;
 }
 void GD3Dvisual_obstacle::obstacle_entered_char(uint32_t ignoremask)
 {
