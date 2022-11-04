@@ -45,6 +45,7 @@ private:
     bool initialized;
     bool default_interior_shape;
     bool default_visible_shape;
+    bool default_camera;
     //Values
     float gravity = 9.8f;
     float mouse_sensitivity = 0.2f;
@@ -81,7 +82,7 @@ private:
 
 public:
 
-    virtual void _ready() override;
+    virtual void _enter_tree() override;
     virtual void _exit_tree() override;
 
     void character_init();

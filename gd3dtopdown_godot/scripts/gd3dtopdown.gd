@@ -4,10 +4,10 @@ extends GD3Dtd_character
 var SPEED = 5.0
 var MOVE_LERP = 0.25
 
-#If the _ready function is declared it overrides the _ready function
+#If the _enter_tree function is declared it overrides the _ready function
 #should this be needed, dont forget to initialize the character with character_init()
 
-#func _ready():
+#_enter _tree():
 #	character_init()	
 
 #Camera movements can be locked when aiming by using the *_aimlock functions

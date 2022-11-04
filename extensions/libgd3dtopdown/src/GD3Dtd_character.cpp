@@ -2,6 +2,15 @@
 
 GD3Dtd_character::GD3Dtd_character()
 {
+
+    if (visual_collision_area != nullptr && default_visible_shape) visual_collision_area->queue_free();
+    if (interiors_collision_area != nullptr && default_visible_shape) interiors_collision_area->queue_free();
+    //if (camera != nullptr && default_camera) camera->queue_free();
+
+    default_interior_shape = false;
+    default_visible_shape = false;
+    default_camera = false;
+
     visual_collision_area = nullptr;
     interiors_collision_area = nullptr;
     old_aim_node = nullptr;
@@ -11,7 +20,17 @@ GD3Dtd_character::GD3Dtd_character()
 
 GD3Dtd_character::~GD3Dtd_character()
 {
-    character_uninit();
+    if (visual_collision_area != nullptr && default_visible_shape) visual_collision_area->queue_free();
+    if (interiors_collision_area != nullptr && default_visible_shape) interiors_collision_area->queue_free();
+    if (camera != nullptr && default_camera) camera->queue_free();
+
+    default_interior_shape = false;
+    default_visible_shape = false;
+    default_camera = false;
+    camera = nullptr;
+    visual_collision_area = nullptr;
+    interiors_collision_area = nullptr;
+    old_aim_node = nullptr;
 }
 
 #define GETSET_GD3D(FUNC) ClassDB::bind_method(D_METHOD("get_"#FUNC), &GD3Dtd_character::get_##FUNC);\
@@ -19,15 +38,12 @@ GD3Dtd_character::~GD3Dtd_character()
 #define ADDPROP_GD3D(PROP,TYPE) ADD_PROPERTY(PropertyInfo(Variant::TYPE, #PROP), "set_"#PROP, "get_"#PROP)
 void GD3Dtd_character::_bind_methods()
 {
-    
-    //ClassDB::bind_virtual_method("GD3Dtd_character", "_ready", &GD3Dtd_character::_ready);
     ClassDB::bind_method(D_METHOD("character_init"), &GD3Dtd_character::character_init);
     ClassDB::bind_method(D_METHOD("rotate_camera", "rotation_Vector2"), &GD3Dtd_character::rotate_camera);
     ClassDB::bind_method(D_METHOD("rotate_camera_aimlock","rotation_Vector2"), &GD3Dtd_character::rotate_camera_aimlock);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse", "event"), &GD3Dtd_character::rotate_camera_mouse);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse_aimlock","event"), &GD3Dtd_character::rotate_camera_mouse_aimlock);
     ClassDB::bind_method(D_METHOD("character_move","delta","input_Vector2","is_aiming","speed","move_lerp"), &GD3Dtd_character::character_move);
-   
 
     ClassDB::bind_method(D_METHOD("get_character_forward"), &GD3Dtd_character::get_character_forward);
     ClassDB::bind_method(D_METHOD("get_character_direction"), &GD3Dtd_character::get_character_direction);
@@ -81,14 +97,11 @@ void GD3Dtd_character::_bind_methods()
 //Initializer functions, get pointers to Input and project settings. Set gravity value
 void GD3Dtd_character::character_init()
 {
-
     if (initialized) return;
     initialized = true;
-    default_interior_shape = false;
-    default_visible_shape = false;
-    gravity = 9.8f;
 
-#pragma region Child_node_initialization
+
+    gravity = 9.8f;
     //Pointers and instancing
     ProjectSettings* p_settings = ProjectSettings::get_singleton();
     if (p_settings == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain project settings pointer, didnt initialize"); }
@@ -99,70 +112,15 @@ void GD3Dtd_character::character_init()
         gravity = float(grav);
         DEBUG_WARN_GD3D("Got gravity from user settings physics/3d/default_gravity");
     }
-    if(!camera_node.is_empty())
-        camera = get_node<Camera3D>(camera_node);
-     
 
+    set_camera_node(camera_node);
+    camera = dynamic_cast<Camera3D*>(get_node<Camera3D>(camera_node));
     if (camera == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain camera pointer, wont initialize"); }
-    camera->set_as_top_level(true);
-    if(!visual_collision_area_node.is_empty())
-        visual_collision_area = get_node<Area3D>(visual_collision_area_node);
-    if(!interiors_collision_area_node.is_empty())
-        interiors_collision_area = get_node<Area3D>(interiors_collision_area_node);
-   
-    if(visual_collision_area == nullptr)
-    {//If node is not set, will create a visual collision area with default settings
-        visual_collision_area = memnew(Area3D);
-        CollisionShape3D* visual_col_shp = memnew(CollisionShape3D);
-        BoxShape3D* visual_box = memnew(BoxShape3D);
-        add_child(visual_collision_area);
-        visual_collision_area->set_owner(this);
-        visual_collision_area->add_child(visual_col_shp);
-        visual_col_shp->set_owner(visual_collision_area);
-        visual_col_shp->set_shape(visual_box);
-        visual_collision_area->set_position(Vector3(0, 1, 0));
-        visual_box->set_size(Vector3(0.1f, 0.1f, camera_boon.length()));
-        visual_col_shp->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
-        visual_collision_area->set_monitoring(true);
-        visual_collision_area->set_monitorable(true);
-
-        visual_collision_area->set_name("Visual_obstacle_detector");
-        default_visible_shape = true;
-    }
+    set_visual_collision_area_node(visual_collision_area_node);
     if (visual_collision_area == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain visual_collision_area pointer, didnt initialize"); }
 
-    visual_collision_area->set_collision_layer(0);
-    visual_collision_area->set_collision_mask(visual_collision_mask);
-    visual_collision_area->connect("body_entered", Callable(this, "enter_visual_event"));
-    visual_collision_area->connect("body_exited", Callable(this, "exit_visual_event"));
-
-    if (interiors_collision_area == nullptr) 
-    {//If node is not set, will create a interiors collision area with default settings
-        interiors_collision_area = memnew(Area3D);
-        CollisionShape3D* interiors_collision_col_shp = memnew(CollisionShape3D);
-        BoxShape3D* interiors_collision_box = memnew(BoxShape3D);
-        add_child(interiors_collision_area);
-        interiors_collision_area->set_owner(this);
-        interiors_collision_area->add_child(interiors_collision_col_shp);
-        interiors_collision_col_shp->set_owner(interiors_collision_area);
-        interiors_collision_col_shp->set_shape(interiors_collision_box);
-        interiors_collision_box->set_size(Vector3(0.1f, 0.1f, 0.1f));
-        interiors_collision_area->set_position(Vector3(0, 1, 0));
-        interiors_collision_area->set_monitoring(true);
-        interiors_collision_area->set_monitorable(true);
-
-        interiors_collision_area->set_name("Interiors_detector");
-        default_interior_shape = true;
-    }
+    set_interiors_collision_area_node(interiors_collision_area_node);
     if (interiors_collision_area == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain interiors_collision_area pointer, didnt initialize"); }
-
-    interiors_collision_area->set_collision_layer(0);
-    interiors_collision_area->set_collision_mask(visual_collision_mask);
-    interiors_collision_area->connect("area_entered", Callable(this, "enter_interior_event"));
-    interiors_collision_area->connect("area_exited", Callable(this, "exit_interior_event"));
-
-#pragma endregion Child_node_initialization
-#pragma region Initialization_warnings
 
     if ((visual_collision_mask & aim_collision_mask) != 0)
     {
@@ -173,44 +131,22 @@ void GD3Dtd_character::character_init()
         DEBUG_WARN_GD3D("interiors_collision_mask and aim_collision_mask share layers this might lead to unexpected behavior");
     }
     DEBUG_WARN_GD3D("Initialized GD3D with gravity: " + String::num_real(gravity));
-
-
-#pragma endregion Initialization_warnings
 }
 #undef DEBUG_WARN_GD3D
 
 void GD3Dtd_character::character_uninit()
 {
     if (!initialized) return;
-    if (visual_collision_area != nullptr)
-    {
-        if(visual_collision_area->is_connected("body_entered", Callable(this, "enter_visual_event")))
-            visual_collision_area->disconnect("body_entered", Callable(this, "enter_visual_event"));
-        if (visual_collision_area->is_connected("body_exited", Callable(this, "exit_visual_event")))
-            visual_collision_area->disconnect("body_exited", Callable(this, "exit_visual_event"));
-        if (default_visible_shape) memdelete(visual_collision_area);
-    }
-    if (interiors_collision_area != nullptr)
-    {
-        if(interiors_collision_area->is_connected("area_entered", Callable(this, "enter_interior_event")))
-            interiors_collision_area->disconnect("area_entered", Callable(this, "enter_interior_event"));
-        if (interiors_collision_area->is_connected("area_exited", Callable(this, "exit_interior_event")))
-            interiors_collision_area->disconnect("area_exited", Callable(this, "exit_interior_event"));
-        if (default_interior_shape) memdelete(interiors_collision_area);
-    }
 
-    visual_collision_area = nullptr;
-    interiors_collision_area = nullptr;
-    old_aim_node = nullptr;
-    camera = nullptr;
+    
     initialized = false;
 }
 
 
-void GD3Dtd_character::_ready()
+void GD3Dtd_character::_enter_tree()
 {
 #ifdef DEBUG_ENABLED
-    if (Engine::get_singleton()->is_editor_hint()) return;
+    //if (Engine::get_singleton()->is_editor_hint()) return;
 #endif 
     character_init();
 }
@@ -417,10 +353,9 @@ void GD3Dtd_character::set_visual_collision_mask(uint32_t p_mask)
 }
 uint32_t GD3Dtd_character::get_visual_collision_mask() const
 {
-    uint32_t msk = visual_collision_mask;
-    if (visual_collision_area != nullptr)
-        msk = visual_collision_area->get_collision_mask();
-    return msk;
+    if (visual_collision_area == nullptr) return visual_collision_mask;
+    
+    return  visual_collision_area->get_collision_mask();
 }
 void GD3Dtd_character::set_interiors_collision_mask(uint32_t p_mask)
 {
@@ -431,13 +366,128 @@ void GD3Dtd_character::set_interiors_collision_mask(uint32_t p_mask)
 }
 uint32_t GD3Dtd_character::get_interiors_collision_mask() const
 {
-    uint32_t msk = interiors_collision_mask;
-    if (interiors_collision_area != nullptr)
-        msk = interiors_collision_area->get_collision_mask();
-    return msk;
+    if (interiors_collision_area == nullptr) return interiors_collision_mask;
+    return  interiors_collision_area->get_collision_mask();
 }
-void GD3Dtd_character::set_camera_node(const NodePath& set){ camera_node = set;}
+void GD3Dtd_character::set_camera_node(const NodePath& set)
+{ 
+    camera_node = set;
+    /*if (camera != nullptr && default_camera)
+    {
+        camera->queue_free();
+        camera = nullptr;
+    }
+
+    if (!camera_node.is_empty())
+    {
+        camera = dynamic_cast<Camera3D*>(get_node<Camera3D>(camera_node));
+        default_camera = false;
+    }
+
+    if (camera == nullptr) 
+    {
+        WARN_PRINT("default camera");
+        camera = memnew(Camera3D);
+        add_child(camera);
+        camera->set_name("Default_camera");
+
+        default_camera = true;
+    } */
+    
+    //camera->set_as_top_level(true);
+}
 NodePath GD3Dtd_character::get_camera_node() const { return camera_node; }
+
+void  GD3Dtd_character::set_interiors_collision_area_node(const NodePath& set)
+{
+    if (interiors_collision_area != nullptr)
+    {
+        if (interiors_collision_area->is_connected("area_entered", Callable(this, "enter_interior_event")))
+            interiors_collision_area->disconnect("area_entered", Callable(this, "enter_interior_event"));
+        if (interiors_collision_area->is_connected("area_exited", Callable(this, "exit_interior_event")))
+            interiors_collision_area->disconnect("area_exited", Callable(this, "exit_interior_event"));
+        if (default_interior_shape) interiors_collision_area->queue_free();
+        interiors_collision_area = nullptr;
+    }
+    interiors_collision_area_node = set;
+    
+    if (!interiors_collision_area_node.is_empty())
+    {
+        interiors_collision_area = dynamic_cast<Area3D*>(get_node<Area3D>(interiors_collision_area_node));
+        default_interior_shape = false;
+    }
+    if (interiors_collision_area == nullptr)
+    {
+        interiors_collision_area_node = NodePath();
+
+        interiors_collision_area = memnew(Area3D);
+        CollisionShape3D* interiors_collision_col_shp = memnew(CollisionShape3D);
+        BoxShape3D* interiors_collision_box = memnew(BoxShape3D);
+        add_child(interiors_collision_area);
+        interiors_collision_area->set_owner(this);
+        interiors_collision_area->add_child(interiors_collision_col_shp);
+        interiors_collision_col_shp->set_owner(interiors_collision_area);
+        interiors_collision_col_shp->set_shape(interiors_collision_box);
+        interiors_collision_box->set_size(Vector3(0.1f, 0.1f, 0.1f));
+        interiors_collision_area->set_position(Vector3(0, 1, 0));
+
+        interiors_collision_area->set_name("Default_interiors_detector");
+        default_interior_shape = true;
+    }
+    interiors_collision_area->set_monitoring(true);
+    interiors_collision_area->set_monitorable(true);
+    interiors_collision_area->set_collision_layer(0);
+    interiors_collision_area->set_collision_mask(interiors_collision_mask);
+
+    interiors_collision_area->connect("area_entered", Callable(this, "enter_interior_event"));
+    interiors_collision_area->connect("area_exited", Callable(this, "exit_interior_event"));
+}
+NodePath  GD3Dtd_character::get_interiors_collision_area_node() const{ return interiors_collision_area_node; }
+void  GD3Dtd_character::set_visual_collision_area_node(const NodePath& set)
+{
+    if (visual_collision_area != nullptr)
+    {
+        if (visual_collision_area->is_connected("body_entered", Callable(this, "enter_visual_event")))
+            visual_collision_area->disconnect("body_entered", Callable(this, "enter_visual_event"));
+        if (visual_collision_area->is_connected("body_exited", Callable(this, "exit_visual_event")))
+            visual_collision_area->disconnect("body_exited", Callable(this, "exit_visual_event"));
+        if (default_visible_shape) visual_collision_area->queue_free();
+        visual_collision_area = nullptr;
+    }
+
+    visual_collision_area_node = set;
+
+    if (!visual_collision_area_node.is_empty())
+    {
+        visual_collision_area = dynamic_cast<Area3D*>(get_node<Area3D>(visual_collision_area_node));
+        default_visible_shape = false;
+    }
+    if(visual_collision_area == nullptr)
+    {
+        visual_collision_area = memnew(Area3D);
+        CollisionShape3D* visual_col_shp = memnew(CollisionShape3D);
+        BoxShape3D* visual_box = memnew(BoxShape3D);
+        add_child(visual_collision_area);
+        visual_collision_area->set_owner(this);
+        visual_collision_area->add_child(visual_col_shp);
+        visual_col_shp->set_owner(visual_collision_area);
+        visual_col_shp->set_shape(visual_box);
+        visual_collision_area->set_position(Vector3(0, 1, 0));
+        visual_box->set_size(Vector3(0.1f, 0.1f, camera_boon.length()));
+        visual_col_shp->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
+
+        visual_collision_area->set_name("Default_visual_detector");
+        default_visible_shape = true;
+    }
+
+    visual_collision_area->set_monitoring(true);
+    visual_collision_area->set_monitorable(true);
+    visual_collision_area->set_collision_layer(0);
+    visual_collision_area->set_collision_mask(visual_collision_mask);
+    visual_collision_area->connect("body_entered", Callable(this, "enter_visual_event"));
+    visual_collision_area->connect("body_exited", Callable(this, "exit_visual_event"));
+}
+NodePath  GD3Dtd_character::get_visual_collision_area_node() const { return visual_collision_area_node; }
 
 Vector3 GD3Dtd_character::get_lookat_position() const { return lookat_position; }
 Node3D* GD3Dtd_character::get_aim_node()const { return old_aim_node; }
@@ -452,10 +502,6 @@ void GD3Dtd_character::set_turn_speed(const float set) { turn_speed = set; }
 float GD3Dtd_character::get_turn_speed() const { return turn_speed; }
 void GD3Dtd_character::set_instant_turn_aiming(const bool set) { instant_turn_aiming = set; }
 bool GD3Dtd_character::get_instant_turn_aiming() const { return instant_turn_aiming; }
-void  GD3Dtd_character::set_interiors_collision_area_node(const NodePath& set) { interiors_collision_area_node = set; }
-NodePath  GD3Dtd_character::get_interiors_collision_area_node() const { return interiors_collision_area_node; }
-void  GD3Dtd_character::set_visual_collision_area_node(const NodePath& set) { visual_collision_area_node = set; }
-NodePath  GD3Dtd_character::get_visual_collision_area_node() const { return visual_collision_area_node; }
 void GD3Dtd_character::set_invert_camera_movement(const bool set) { invert_camera_movement = set; }
 bool GD3Dtd_character::get_invert_camera_movement() const { return invert_camera_movement; }
 void GD3Dtd_character::set_camera_boon(const Vector3& set) { camera_boon = set; }
