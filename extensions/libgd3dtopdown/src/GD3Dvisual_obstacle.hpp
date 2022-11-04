@@ -41,6 +41,7 @@ private:
 	
 	bool auto_invisible = false;
 	bool auto_ignore = false;
+	bool generate_shadow_mesh = true;
 	StringName shader_param = "";
 	float shader_param_min = 0;
 	float shader_param_max = 0;
@@ -78,6 +79,8 @@ public:
 	bool get_auto_ignore() const;
 	void set_auto_invisible(const bool set);
 	bool get_auto_invisible() const;
+	void set_generate_shadow_mesh(const bool set);
+	bool get_generate_shadow_mesh() const; 
 	void set_shader_param(const StringName& set);
 	StringName get_shader_param() const;
 	void set_shader_param_min(const float set);

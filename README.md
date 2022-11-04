@@ -9,7 +9,7 @@ It also showcases a solution for top down 3D games where the camera can be rotat
 ## Installation
 ### Compiled from source (Debug)  
 
-This guide assumes you have the required C++ compilers and scons installed, explained in the [compiling guide.](https://docs.godotengine.org/en/stable/development/compiling/index.html) 
+This guide assumes you have the required C++ compilers and SCons installed, explained in the [godot compiling guide.](https://docs.godotengine.org/en/stable/development/compiling/index.html) 
 
 Clone the project with submodules  
 ```
@@ -37,7 +37,7 @@ It also includes a gdscript example (`res://scripts/gd3topdown.gd`) with exaplan
 
 #### How it works  
   
-The character can interact with 3 other nodes also implemented in this plugin.  
+The character can interact with 3 other nodes, also implemented in this plugin.  
 
 1. GD3Dselectable_node: When the mouse is over the object and aiming (Rigth click in the example).
 
@@ -47,13 +47,13 @@ The character can interact with 3 other nodes also implemented in this plugin.
 
 To achieve this the character instances two `Area3D` nodes on initialization, if the node paths of the `Area3D` nodes are not provided to the character, it will instance some default ones.
 
-A third type of collision detection is used when aiming.  
+A third mask for collision detection is used when aiming.  
 
-Because of this, when selecting collision masks Visual and Interior Collision Masks cannot be the same as the Aiming mask. However objects that can be detected and interacted with can (and should) be in those layers.
+Because of this, when selecting collision mask,s Visual and Interior Collision Masks cannot be the same as the Aiming mask. However objects that can be detected and interacted with can be in both of those layers.
 
 ![character_detection](./images/character_detection.png "Character Detection")
 
-A node that must be supplied to the Character for it to work is a Camera node. It will be set as top level so it doesnt inherit the rotation. So It can be simply placed in the scene and dragged into the corresponding slot.
+A node that must be supplied to the Character for it to work is a Camera node. It will be set as top level, so it doesnt inherit the rotation. It can be placed in the scene and dragged into the corresponding slot in the inspector.
 
 ### Building scene (`res://scenes/buildings/house.tscn`)  
 #### Description  
@@ -69,19 +69,19 @@ A `GD3Dvisual_obstacle` can be childed to several `GD3Dinterior_area` nodes. And
 
 ![visual_obstacle](./images/gd3d_visual_obstacle.png "Visual Obstacles")  
 
-If Auto Ignore is checked, when the wall dissapears The mouse aim will no longer detect it.
-If Auto Invisible is checked, when the wall dissapears it will aumatically use one of two chioces.
+If Auto Ignore is checked, when the wall dissapears, the mouse aim will no longer detect it.
+If Auto Invisible is checked, when the wall dissapears it will automatically use one of two chioces.
 
-1. If the child mesh of the visual obstacle has a shader material, you can supply it with the parameters the dissapearing shader and the node will use two tweens to appear and dissapear the mesh (or any other effect you can think of)  and will do so while keeping track of the progress of the effect.
+1. If the child mesh of the visual obstacle has a shader material used for making the wall invisible, you can supply it with the parameters for the shader and the node will use two tweens to appear and dissapear the mesh (or any other effect you can think of) and will do so while keeping track of the progress of the effect.
 Which will prevent pops.
 
-2. If you dont supply parameters node.set_visible() will be used.
+2. If you don't supply parameters, node.set_visible() will be used.
 
 Currently, the node simply duplicates in order to cast shadows. Use with caution if you have complex meshes.
 
 ### Main scene (`res://scenes/main_scene.tscn`)
 
-This is the main scene. I has a `GD3Dvisual_obstacle` node without parent (will only disspear when it's between the camera and the character), the house, a `GD3Dselectable_node` and the camera.
+This is the main scene. It has a `GD3Dvisual_obstacle` node without parent (will only disspear when it's between the camera and the character), the house, a `GD3Dselectable_node` and the camera.
 
 The `GD3Dselectable_node` will simply emit a signal when the mouse is aiming and hovers over it, stops hovering over it. Or is hovering over it and you stop aiming. (`res://scripts/selectable_node.gd`)
 

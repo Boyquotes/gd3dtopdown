@@ -21,8 +21,8 @@ void GD3Dtd_character::_bind_methods()
 {
     
     //ClassDB::bind_virtual_method("GD3Dtd_character", "_ready", &GD3Dtd_character::_ready);
-    ClassDB::bind_method( D_METHOD("character_init"), &GD3Dtd_character::character_init);
-    ClassDB::bind_method( D_METHOD("rotate_camera", "rotation_Vector2"), &GD3Dtd_character::rotate_camera);
+    ClassDB::bind_method(D_METHOD("character_init"), &GD3Dtd_character::character_init);
+    ClassDB::bind_method(D_METHOD("rotate_camera", "rotation_Vector2"), &GD3Dtd_character::rotate_camera);
     ClassDB::bind_method(D_METHOD("rotate_camera_aimlock","rotation_Vector2"), &GD3Dtd_character::rotate_camera_aimlock);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse", "event"), &GD3Dtd_character::rotate_camera_mouse);
     ClassDB::bind_method(D_METHOD("rotate_camera_mouse_aimlock","event"), &GD3Dtd_character::rotate_camera_mouse_aimlock);
@@ -370,8 +370,8 @@ void GD3Dtd_character::handle_aim_node(Node3D* nd)
     if (old_aim_node != nullptr)
     {
         GD3Dselectable_node* selectable = dynamic_cast<GD3Dselectable_node*>(old_aim_node);
-        if (selectable != nullptr)
-            selectable->on_unselected();
+        
+        if (selectable != nullptr) selectable->on_unselected();
     }
 
     old_aim_node = nd;
@@ -379,21 +379,19 @@ void GD3Dtd_character::handle_aim_node(Node3D* nd)
     if (old_aim_node != nullptr)
     {
         GD3Dselectable_node* selectable = dynamic_cast<GD3Dselectable_node*>(old_aim_node);
-        if (selectable != nullptr)
-            selectable->on_selected();
+        
+        if (selectable != nullptr) selectable->on_selected();
     }
 }
 void GD3Dtd_character::enter_visual_event(Object* body)
 {
-    GD3Dvisual_obstacle* ar = dynamic_cast<GD3Dvisual_obstacle*>(body);
-    if (ar != nullptr)
-        ar->obstacle_entered_char(aim_collision_mask);
+    GD3Dvisual_obstacle* vis = dynamic_cast<GD3Dvisual_obstacle*>(body);
+    if (vis != nullptr) vis->obstacle_entered_char(aim_collision_mask);
 }
 void GD3Dtd_character::exit_visual_event(Object* body)
 {
-    GD3Dvisual_obstacle* ar = dynamic_cast<GD3Dvisual_obstacle*>(body);
-    if (ar != nullptr )
-        ar->obstacle_exited_char(aim_collision_mask);
+    GD3Dvisual_obstacle* vis = dynamic_cast<GD3Dvisual_obstacle*>(body);
+    if (vis != nullptr ) vis->obstacle_exited_char(aim_collision_mask);
 }
 void GD3Dtd_character::enter_interior_event(Object* area)
 {

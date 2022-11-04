@@ -29,9 +29,11 @@ void GD3Dvisual_obstacle::_bind_methods()
 	GETSET_GD3D(shader_param_min);
 	GETSET_GD3D(shader_param_max);
 	GETSET_GD3D(shader_duration);
+	GETSET_GD3D(generate_shadow_mesh);
 	
 	ADDPROP_GD3D(BOOL, auto_ignore);
 	ADDPROP_GD3D(BOOL, auto_invisible);
+	ADDPROP_GD3D(BOOL, generate_shadow_mesh);
 	ADDPROP_GD3D(STRING_NAME, shader_param);
 	ADDPROP_GD3D(FLOAT, shader_param_min);
 	ADDPROP_GD3D(FLOAT, shader_param_max);
@@ -112,14 +114,16 @@ void GD3Dvisual_obstacle::init_obstacle()
 			tw_invisible->stop();
 			tw_visible->stop();
 		}
-		
-		shadow_mesh = memnew(MeshInstance3D);
-		add_child(shadow_mesh);
-		shadow_mesh->set_owner(this);
-		shadow_mesh->set_mesh(visible_mesh->get_mesh());
-		shadow_mesh->set_material_override(memnew(Material));
-		visible_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
-		shadow_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_SHADOWS_ONLY);
+		if(generate_shadow_mesh)
+		{
+			shadow_mesh = memnew(MeshInstance3D);
+			add_child(shadow_mesh);
+			shadow_mesh->set_owner(this);
+			shadow_mesh->set_mesh(visible_mesh->get_mesh());
+			shadow_mesh->set_material_override(memnew(Material));
+			visible_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
+			shadow_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_SHADOWS_ONLY);
+		}
 	}
 #pragma endregion create_shadow_mesh
 	
@@ -288,6 +292,8 @@ void GD3Dvisual_obstacle::set_auto_ignore(const bool set) { auto_ignore = set; }
 bool GD3Dvisual_obstacle::get_auto_ignore() const { return auto_ignore; }
 void GD3Dvisual_obstacle::set_auto_invisible(const bool set) { auto_invisible = set; }
 bool GD3Dvisual_obstacle::get_auto_invisible() const {return auto_invisible;}
+void GD3Dvisual_obstacle::set_generate_shadow_mesh(const bool set) { generate_shadow_mesh = set; }
+bool GD3Dvisual_obstacle::get_generate_shadow_mesh() const { return generate_shadow_mesh; }
 void GD3Dvisual_obstacle::set_shader_param(const StringName& set) { shader_param = set; }
 StringName GD3Dvisual_obstacle::get_shader_param() const {return shader_param;}
 void GD3Dvisual_obstacle::set_shader_param_min(const float set) { shader_param_min = set; }
