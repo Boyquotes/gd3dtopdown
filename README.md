@@ -53,7 +53,8 @@ Because of this, when selecting collision mask,s Visual and Interior Collision M
 
 ![character_detection](./images/character_detection.png "Character Detection")
 
-A node that must be supplied to the Character for it to work is a Camera node. It will be set as top level, so it doesnt inherit the rotation. It can be placed in the scene and dragged into the corresponding slot in the inspector.
+(Currently not working due to NodePath not working as expected, a defualt camera will be instanced) A camera Node can be supplied in the corresponding box. It will be set as top level, so it doesnt inherit the rotation. It can be placed in the scene and dragged into the corresponding slot in the inspector.
+
 
 ### Building scene (`res://scenes/buildings/house.tscn`)  
 #### Description  
