@@ -107,9 +107,8 @@ shape = SubResource("BoxShape3D_udsyo")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
 mesh = SubResource("BoxMesh_100tx")
 
-[node name="Camera3d" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.24536, 8.79923)
-top_level = true
-
 [node name="GD3Dexample_char" parent="." instance=ExtResource("2_gnal5")]
-camera_node = NodePath("../Camera3d")
+interiors_collision_mask = 2
+visual_collision_mask = 2
+aim_collision_mask = 4
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.570886, 0)
