@@ -8,6 +8,8 @@
 
 #include <godot_cpp/classes/character_body3d.hpp>
 
+#include <godot_cpp/classes/ref.hpp>
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -28,6 +30,8 @@
 #include "GD3Dinterior_area.hpp"
 #include "GD3Dselectable_node.hpp"
 
+#include "GD3Dhelpers.hpp"
+
 using namespace godot;
 
 class GD3Dtd_character : public CharacterBody3D {
@@ -43,9 +47,6 @@ protected:
 private:
 
     bool initialized;
-    bool default_interior_shape;
-    bool default_visible_shape;
-    bool default_camera;
     //Values
     float gravity = 9.8f;
     float mouse_sensitivity = 0.2f;
@@ -53,10 +54,12 @@ private:
     bool instant_turn_aiming;
 
     //Aiming and camera properties
+    unique_node_ptr<Camera3D> camera;
+    //Camera3D* camera;
     bool is_aiming;
     Vector3 lookat_position;
     NodePath camera_node;
-    Camera3D* camera;
+    //Camera3D* camera;
     Vector3 camera_boon = Vector3(0, 15, 10);
     float camera_predict = 1;
     float camera_predict_speed = 15;
@@ -69,10 +72,10 @@ private:
     //Visual obstacles
     NodePath  interiors_collision_area_node;
     NodePath  visual_collision_area_node;
-    Area3D* interiors_collision_area;
+    unique_node_ptr<Area3D> interiors_collision_area;
     uint32_t interiors_collision_mask = 0;
     uint32_t visual_collision_mask = 0;
-    Area3D* visual_collision_area;
+    unique_node_ptr<Area3D> visual_collision_area;
 
     //Displacement and orientation vectors
     Vector3 character_forward;
@@ -81,8 +84,7 @@ private:
     float character_movement_dot;
 
 public:
-
-    virtual void _enter_tree() override;
+    virtual void _ready() override;
     virtual void _exit_tree() override;
 
     void character_init();
