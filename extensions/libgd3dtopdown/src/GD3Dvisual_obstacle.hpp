@@ -18,7 +18,9 @@
 #include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/classes/method_tweener.hpp>
 
-#include <GD3Dinterior_area.hpp>
+
+#include "GD3Dinterior_area.hpp"
+#include "GD3Dhelpers.hpp"
 
 using namespace godot;
 
@@ -33,8 +35,10 @@ protected:
 	static void _bind_methods();
 private:
 	bool initialized;
+	
 	MeshInstance3D* visible_mesh;
-	MeshInstance3D* shadow_mesh;
+	unique_node_ptr<MeshInstance3D> shadow_mesh;
+	
 	Ref<ShaderMaterial> visible_material;
 
 	uint32_t collision_layer;

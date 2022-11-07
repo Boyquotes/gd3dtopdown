@@ -1,3 +1,5 @@
+#ifndef GD3DTD_HELPERS
+#define GD3DTD_HELPERS
 
 template<typename T>
 class unique_node_ptr
@@ -62,3 +64,4 @@ public:
 private:
 
 };
+#endif // !

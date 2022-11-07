@@ -5,10 +5,7 @@ GD3Dtd_character::GD3Dtd_character()
     initialized = false;
 }
 
-GD3Dtd_character::~GD3Dtd_character()
-{
-    
-}
+GD3Dtd_character::~GD3Dtd_character(){}
 
 #define GETSET_GD3D(FUNC) ClassDB::bind_method(D_METHOD("get_"#FUNC), &GD3Dtd_character::get_##FUNC);\
                         ClassDB::bind_method(D_METHOD("set_"#FUNC, #FUNC), &GD3Dtd_character::set_##FUNC)
@@ -115,7 +112,9 @@ void GD3Dtd_character::character_init()
 void GD3Dtd_character::character_uninit()
 {
     if (!initialized) return;
-
+    interiors_collision_area.reset();
+    visual_collision_area.reset();
+    camera.reset();
     initialized = false;
 }
 

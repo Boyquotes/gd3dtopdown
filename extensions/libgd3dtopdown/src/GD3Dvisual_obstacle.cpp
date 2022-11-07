@@ -4,7 +4,6 @@ GD3Dvisual_obstacle::GD3Dvisual_obstacle()
 {
 	initialized = false;
 	visible_mesh = nullptr;
-	shadow_mesh = nullptr;
 }
 
 GD3Dvisual_obstacle::~GD3Dvisual_obstacle()
@@ -117,7 +116,7 @@ void GD3Dvisual_obstacle::init_obstacle()
 		if(generate_shadow_mesh)
 		{
 			shadow_mesh = memnew(MeshInstance3D);
-			add_child(shadow_mesh);
+			add_child(shadow_mesh.get());
 			shadow_mesh->set_owner(this);
 			shadow_mesh->set_mesh(visible_mesh->get_mesh());
 			shadow_mesh->set_material_override(memnew(Material));
@@ -164,7 +163,6 @@ void GD3Dvisual_obstacle::uninit_obstacle()
 	if (!initialized) return;
 	initialized = false;
 	
-	if (shadow_mesh != nullptr) memdelete(shadow_mesh);
 	if (!visible_material.is_null()) visible_material.unref();
 
 	if (parent_interior_areas.size() > 0)
@@ -172,15 +170,15 @@ void GD3Dvisual_obstacle::uninit_obstacle()
 		for (int64_t i = 0; i < parent_interior_areas.size(); i++)
 		{
 			GD3Dinterior_area* area = cast_to<GD3Dinterior_area>(parent_interior_areas[i]);
+			if (area == nullptr) continue;
 			if(area->is_connected("entered_signal_mask", Callable(this, "obstacle_entered")))
 				area->disconnect("entered_signal_mask", Callable(this, "obstacle_entered"));
 			if (area->is_connected("exited_signal_mask", Callable(this, "obstacle_exited")))
 				area->disconnect("exited_signal_mask", Callable(this, "obstacle_exited"));
 		}
 	}
-
+	shadow_mesh.reset();
 	parent_interior_areas.clear();
-	shadow_mesh = nullptr;
 	visible_mesh = nullptr;
 }
 void GD3Dvisual_obstacle::obstacle_entered_char(uint32_t ignoremask)
@@ -288,12 +286,17 @@ void GD3Dvisual_obstacle::_visible_shader_tween(float progress)
 	visible_material->set_shader_parameter(shader_param, progress);
 }
 
+void GD3Dvisual_obstacle::set_generate_shadow_mesh(const bool set)
+{
+	generate_shadow_mesh = set;
+	
+}
+bool GD3Dvisual_obstacle::get_generate_shadow_mesh() const { return generate_shadow_mesh; }
+
 void GD3Dvisual_obstacle::set_auto_ignore(const bool set) { auto_ignore = set; }
 bool GD3Dvisual_obstacle::get_auto_ignore() const { return auto_ignore; }
 void GD3Dvisual_obstacle::set_auto_invisible(const bool set) { auto_invisible = set; }
 bool GD3Dvisual_obstacle::get_auto_invisible() const {return auto_invisible;}
-void GD3Dvisual_obstacle::set_generate_shadow_mesh(const bool set) { generate_shadow_mesh = set; }
-bool GD3Dvisual_obstacle::get_generate_shadow_mesh() const { return generate_shadow_mesh; }
 void GD3Dvisual_obstacle::set_shader_param(const StringName& set) { shader_param = set; }
 StringName GD3Dvisual_obstacle::get_shader_param() const {return shader_param;}
 void GD3Dvisual_obstacle::set_shader_param_min(const float set) { shader_param_min = set; }
