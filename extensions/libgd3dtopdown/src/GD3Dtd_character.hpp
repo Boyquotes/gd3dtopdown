@@ -42,6 +42,7 @@ class GD3Dtd_character : public CharacterBody3D {
     GD3Dtd_character();
     ~GD3Dtd_character();
 protected:
+    void _notification(int p_what);
     static void _bind_methods();
 
 private:
@@ -84,8 +85,6 @@ private:
     float character_movement_dot;
 
 public:
-    virtual void _ready() override;
-    virtual void _exit_tree() override;
 
     void character_init();
     void character_uninit();

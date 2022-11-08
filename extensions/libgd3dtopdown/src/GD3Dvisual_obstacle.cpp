@@ -47,17 +47,25 @@ void GD3Dvisual_obstacle::_bind_methods()
 #undef GETSET_GD3D
 #undef ADDPROP_GD3D
 
-void GD3Dvisual_obstacle::_ready()
+
+
+void  GD3Dvisual_obstacle::_notification(int p_what)
 {
+	switch (p_what) {
+	case NOTIFICATION_READY:
+	{
 #ifdef DEBUG_ENABLED
-	if (Engine::get_singleton()->is_editor_hint()) return;
+		if (Engine::get_singleton()->is_editor_hint()) return;
 #endif
-	init_obstacle();
+		init_obstacle();
+	} break;
+	case NOTIFICATION_EXIT_TREE:
+	{
+		uninit_obstacle();
+	}break;
+	}
 }
-void GD3Dvisual_obstacle::_exit_tree()
-{
-	uninit_obstacle();
-}
+
 #ifdef DEBUG_ENABLED
 #define DEBUG_WARN_GD3D(msg) WARN_PRINT(msg)
 #else
@@ -289,7 +297,6 @@ void GD3Dvisual_obstacle::_visible_shader_tween(float progress)
 void GD3Dvisual_obstacle::set_generate_shadow_mesh(const bool set)
 {
 	generate_shadow_mesh = set;
-	
 }
 bool GD3Dvisual_obstacle::get_generate_shadow_mesh() const { return generate_shadow_mesh; }
 

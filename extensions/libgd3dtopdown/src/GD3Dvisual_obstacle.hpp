@@ -32,6 +32,7 @@ class GD3Dvisual_obstacle : public StaticBody3D
 	~GD3Dvisual_obstacle();
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 private:
 	bool initialized;
@@ -64,9 +65,6 @@ private:
 	void _visible_shader_tween(float progress);
 
 public:
-
-	virtual void _ready() override;
-	virtual void _exit_tree() override;
 
 	void init_obstacle();
 	void uninit_obstacle();

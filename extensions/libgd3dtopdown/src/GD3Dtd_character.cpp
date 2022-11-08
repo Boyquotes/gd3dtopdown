@@ -118,17 +118,18 @@ void GD3Dtd_character::character_uninit()
     initialized = false;
 }
 
-
-void GD3Dtd_character::_ready()
+void GD3Dtd_character::_notification(int p_what)
 {
-#ifdef DEBUG_ENABLED
-    //if (Engine::get_singleton()->is_editor_hint()) return;
-#endif 
-    character_init();
-}
-void GD3Dtd_character::_exit_tree()
-{
-    character_uninit();
+    switch (p_what) {
+        case NOTIFICATION_READY:
+        {
+            character_init();
+        } break;
+        case NOTIFICATION_EXIT_TREE:
+        {
+            character_uninit();
+        }break;
+    }
 }
 
 #pragma region Camera_input_functions
