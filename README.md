@@ -1,8 +1,8 @@
 # GD3Dtopdown
-Top down 3D controller for the Godot Game Engine using GDextension (Godot 4 beta 4.0, will update until release)  
+Top down 3D controller for the Godot Game Engine using GDextension (Godot 4 beta 5.0, will update until release)  
 (under construction and subject to change, use only in DEBUG mode)..
 
-This is a the character controller that I'm using in a personal project. Decided to share it since It's using GDExtension and might be of use to someone should they get stuck.  
+This is a character controller that I'm using in a personal project. Decided to share it since It's using GDExtension and might be of use to someone should they get stuck.  
 
 It also showcases a solution for top down 3D games where the camera can be rotated around the caharacter and buildings can be entered. Hiding walls and roofs (without shaders, although they can be used) and making them transparent to mouse raycasts.  
 
@@ -53,7 +53,7 @@ Because of this, when selecting collision mask,s Visual and Interior Collision M
 
 ![character_detection](./images/character_detection.png "Character Detection")
 
-(Currently not working due to NodePath not working as expected, a defualt camera will be instanced) A camera Node can be supplied in the corresponding box. It will be set as top level, so it doesnt inherit the rotation. It can be placed in the scene and dragged into the corresponding slot in the inspector.
+(Currently not working due to NodePath not working as expected, a default camera will be instanced) A camera Node can be supplied in the corresponding box. It will be set as top level, so it doesnt inherit the rotation. It can be placed in the scene and dragged into the corresponding slot in the inspector.
 
 
 ### Building scene (`res://scenes/buildings/house.tscn`)  
