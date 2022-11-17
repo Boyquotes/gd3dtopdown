@@ -129,6 +129,26 @@ void GD3Dtd_character::_notification(int p_what)
         {
             character_uninit();
         }break;
+#ifdef DEBUG_ENABLED
+        case NOTIFICATION_EDITOR_PRE_SAVE:
+        {
+            character_uninit();
+        }break;
+
+        case NOTIFICATION_EDITOR_POST_SAVE:
+        {
+            set_camera_node(camera_node);
+            if (camera == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain camera pointer, wont initialize"); }
+            set_visual_collision_area_node(visual_collision_area_node);
+            if (visual_collision_area == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain visual_collision_area pointer, didnt initialize"); }
+            set_interiors_collision_area_node(interiors_collision_area_node);
+            if (interiors_collision_area == nullptr) { character_uninit(); ERR_FAIL_COND_MSG(false, "Could not obtain interiors_collision_area pointer, didnt initialize"); }
+        }break;
+        case NOTIFICATION_CRASH:
+        {
+            character_uninit();
+        }break;
+#endif
     }
 }
 
@@ -361,8 +381,9 @@ void GD3Dtd_character::set_camera_node(const NodePath& set)
         WARN_PRINT("default camera");
         camera = memnew(Camera3D);
         camera.set_non_permanency(true);
-        add_child(camera.get());
         camera->set_name("Default_camera");
+
+        call_deferred("add_child",camera.get());
     } 
     
     camera->set_as_top_level(true);
@@ -371,6 +392,14 @@ NodePath GD3Dtd_character::get_camera_node() const { return camera_node; }
 
 void  GD3Dtd_character::set_interiors_collision_area_node(const NodePath& set)
 {
+    if (interiors_collision_area != nullptr)
+    {
+        if (interiors_collision_area->is_connected("area_entered", Callable(this, "enter_interior_event")))
+            interiors_collision_area->disconnect("area_entered", Callable(this, "enter_interior_event"));
+        if (interiors_collision_area->is_connected("area_exited", Callable(this, "exit_interior_event")))
+            interiors_collision_area->disconnect("area_exited", Callable(this, "exit_interior_event"));
+    }
+
     interiors_collision_area_node = set;
     
     if (!interiors_collision_area_node.is_empty())
@@ -386,28 +415,37 @@ void  GD3Dtd_character::set_interiors_collision_area_node(const NodePath& set)
         interiors_collision_area.set_non_permanency(true);
         CollisionShape3D* interiors_collision_col_shp = memnew(CollisionShape3D);
         BoxShape3D* interiors_collision_box = memnew(BoxShape3D);
-        add_child(interiors_collision_area.get());
-        interiors_collision_area->set_owner(this);
-        interiors_collision_area->add_child(interiors_collision_col_shp);
-        interiors_collision_col_shp->set_owner(interiors_collision_area.get());
         interiors_collision_col_shp->set_shape(interiors_collision_box);
         interiors_collision_box->set_size(Vector3(0.1f, 0.1f, 0.1f));
         interiors_collision_area->set_position(Vector3(0, 1, 0));
-
         interiors_collision_area->set_name("Default_interiors_detector");
+        
+        call_deferred("add_child",interiors_collision_area.get());
+        interiors_collision_area->call_deferred("add_child", interiors_collision_col_shp);
+        interiors_collision_area->call_deferred("set_owner",this);
+        interiors_collision_col_shp->call_deferred("set_owner",interiors_collision_area.get());
+
         
     }
     interiors_collision_area->set_monitoring(true);
     interiors_collision_area->set_monitorable(true);
     interiors_collision_area->set_collision_layer(0);
     interiors_collision_area->set_collision_mask(interiors_collision_mask);
-
-    interiors_collision_area->connect("area_entered", Callable(this, "enter_interior_event"));
-    interiors_collision_area->connect("area_exited", Callable(this, "exit_interior_event"));
+  
+    interiors_collision_area->call_deferred("connect","area_entered", Callable(this, "enter_interior_event"));
+    interiors_collision_area->call_deferred("connect","area_exited", Callable(this, "exit_interior_event"));
 }
 NodePath  GD3Dtd_character::get_interiors_collision_area_node() const{ return interiors_collision_area_node; }
 void  GD3Dtd_character::set_visual_collision_area_node(const NodePath& set)
 {
+    if(visual_collision_area != nullptr)
+    {
+        if (visual_collision_area->is_connected("body_entered", Callable(this, "enter_visual_event")))
+            visual_collision_area->disconnect("body_entered", Callable(this, "enter_visual_event"));
+        if (visual_collision_area->is_connected("body_exited", Callable(this, "exit_visual_event")))
+            visual_collision_area->disconnect("body_exited", Callable(this, "exit_visual_event"));
+    }
+
     visual_collision_area_node = set;
 
     if (!visual_collision_area_node.is_empty())
@@ -421,24 +459,25 @@ void  GD3Dtd_character::set_visual_collision_area_node(const NodePath& set)
         visual_collision_area.set_non_permanency(true);
         CollisionShape3D* visual_col_shp = memnew(CollisionShape3D);
         BoxShape3D* visual_box = memnew(BoxShape3D);
-        add_child(visual_collision_area.get());
-        visual_collision_area->set_owner(this);
-        visual_collision_area->add_child(visual_col_shp);
-        visual_col_shp->set_owner(visual_collision_area.get());
         visual_col_shp->set_shape(visual_box);
         visual_collision_area->set_position(Vector3(0, 1, 0));
         visual_box->set_size(Vector3(0.1f, 0.1f, camera_boon.length()));
         visual_col_shp->set_position(Vector3(0, 0, -camera_boon.length() / 2.0));
-
         visual_collision_area->set_name("Default_visual_detector");
+
+
+        call_deferred("add_child", visual_collision_area.get());
+        visual_collision_area->call_deferred("add_child",visual_col_shp);
+        visual_collision_area->call_deferred("set_owner",this);
+        visual_col_shp->call_deferred("set_owner",visual_collision_area.get());
     }
 
     visual_collision_area->set_monitoring(true);
     visual_collision_area->set_monitorable(true);
     visual_collision_area->set_collision_layer(0);
     visual_collision_area->set_collision_mask(visual_collision_mask);
-    visual_collision_area->connect("body_entered", Callable(this, "enter_visual_event"));
-    visual_collision_area->connect("body_exited", Callable(this, "exit_visual_event"));
+    visual_collision_area->call_deferred("connect","body_entered", Callable(this, "enter_visual_event"));
+    visual_collision_area->call_deferred("connect","body_exited", Callable(this, "exit_visual_event"));
 }
 NodePath  GD3Dtd_character::get_visual_collision_area_node() const { return visual_collision_area_node; }
 

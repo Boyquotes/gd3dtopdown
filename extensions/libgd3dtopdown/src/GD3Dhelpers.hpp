@@ -51,7 +51,8 @@ public:
 
     void reset()
     {
-        if (ptr != nullptr && should_d) ptr->queue_free();
+        if (ptr != nullptr && should_d)
+            ptr->queue_free();
         ptr = nullptr;
     }
 

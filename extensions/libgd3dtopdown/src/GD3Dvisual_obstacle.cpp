@@ -121,7 +121,7 @@ void GD3Dvisual_obstacle::init_obstacle()
 			tw_invisible->stop();
 			tw_visible->stop();
 		}
-		if(generate_shadow_mesh)
+		if (generate_shadow_mesh)
 		{
 			shadow_mesh = memnew(MeshInstance3D);
 			add_child(shadow_mesh.get());
@@ -131,6 +131,7 @@ void GD3Dvisual_obstacle::init_obstacle()
 			visible_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_OFF);
 			shadow_mesh->set_cast_shadows_setting(GeometryInstance3D::SHADOW_CASTING_SETTING_SHADOWS_ONLY);
 		}
+		
 	}
 #pragma endregion create_shadow_mesh
 	
@@ -297,6 +298,8 @@ void GD3Dvisual_obstacle::_visible_shader_tween(float progress)
 void GD3Dvisual_obstacle::set_generate_shadow_mesh(const bool set)
 {
 	generate_shadow_mesh = set;
+
+	
 }
 bool GD3Dvisual_obstacle::get_generate_shadow_mesh() const { return generate_shadow_mesh; }
 
