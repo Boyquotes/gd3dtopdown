@@ -1,4 +1,4 @@
-extends GD3Dtd_character
+extends CharacterGD3D
 
 @onready var anim_tree = $AnimationTree
 var SPEED = 5.0
@@ -8,13 +8,13 @@ var CAMERA_PREDICT = 1.0
 var CAMERA_PREDICT_SPEED = 15.0
 
 var INVERTED_CAMERA = true
-var CAMERA_SENSIBILITY = 0.15
+var CAMERA_SENSIBILITY = 0.1
 #Camera movements can be locked when aiming by using the *_aimlock functions
 #if the function name includes *_mouse_* it handles the mouse movement
 #if it doesn't a Vector2 can be passed as an argument for the displacement of the camera
 func _unhandled_input(event):
 	if(not Input.is_action_pressed("aim")):
-		rotate_camera_mouse(event,CAMERA_SENSIBILITY,false)
+		rotate_camera_mouse(event,CAMERA_SENSIBILITY,INVERTED_CAMERA)
 	
 func _physics_process(delta):
 	var movement = Input.get_vector("move_left","move_right","move_forward","move_back")

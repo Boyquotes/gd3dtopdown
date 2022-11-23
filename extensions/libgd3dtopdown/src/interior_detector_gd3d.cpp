@@ -1,12 +1,12 @@
-#include "GD3Dinteriors_detector.hpp"
+#include "interior_detector_gd3d.hpp"
 
-void GD3Dinteriors_detector::_bind_methods()
+void InteriorDetectorGD3D::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("interior_entered"), &GD3Dinteriors_detector::interior_entered);
-	ClassDB::bind_method(D_METHOD("interior_exited"), &GD3Dinteriors_detector::interior_exited);
+	ClassDB::bind_method(D_METHOD("interior_entered"), &InteriorDetectorGD3D::interior_entered);
+	ClassDB::bind_method(D_METHOD("interior_exited"), &InteriorDetectorGD3D::interior_exited);
 }
 
-void GD3Dinteriors_detector::_notification(int p_what)
+void InteriorDetectorGD3D::_notification(int p_what)
 {
 	switch (p_what)
 	{
@@ -27,11 +27,11 @@ void GD3Dinteriors_detector::_notification(int p_what)
 	}
 }
 
-void GD3Dinteriors_detector::interior_entered(Object* area)
+void InteriorDetectorGD3D::interior_entered(Object* area)
 {
 	area->notification(NOTIFICATION_CHAR_AREA_ENTERED);
 }
-void GD3Dinteriors_detector::interior_exited(Object* area)
+void InteriorDetectorGD3D::interior_exited(Object* area)
 {
 	area->notification(NOTIFICATION_CHAR_AREA_EXITED);
 }

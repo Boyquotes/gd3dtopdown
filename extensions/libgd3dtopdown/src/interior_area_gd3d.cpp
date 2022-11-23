@@ -1,7 +1,7 @@
-#include "GD3Dinterior_area.hpp"
+#include "interior_area_gd3d.hpp"
 
-void GD3Dinterior_area::_bind_methods(){}
-void GD3Dinterior_area::_notification(int p_what){
+void InteriorAreaGD3D::_bind_methods(){}
+void InteriorAreaGD3D::_notification(int p_what){
     switch (p_what) {
         case NOTIFICATION_ENTER_TREE:
         {
@@ -20,13 +20,13 @@ void GD3Dinterior_area::_notification(int p_what){
     }
 }
 
-bool GD3Dinterior_area::is_entered()
+bool InteriorAreaGD3D::is_entered()
 {
     return entered;
 }
-bool GD3Dinterior_area::should_invisible()
+bool InteriorAreaGD3D::should_invisible()
 {
-    GD3Dinterior_area* p_area = dynamic_cast<GD3Dinterior_area*>(get_parent());
+    InteriorAreaGD3D* p_area = dynamic_cast<InteriorAreaGD3D*>(get_parent());
     if (p_area)
     {
         if(p_area->should_invisible()) return true;

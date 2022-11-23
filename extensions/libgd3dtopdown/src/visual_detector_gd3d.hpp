@@ -10,16 +10,16 @@
 
 using namespace godot;
 
-class GD3Dvisual_detector : public Area3D
+class VisualDetectorGD3D : public Area3D
 {
-	GDCLASS(GD3Dvisual_detector, Area3D);
+	GDCLASS(VisualDetectorGD3D, Area3D);
 
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
 
 public:
-#include"GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 	
 public:
 	void visual_obstacle_entered(Object* body);

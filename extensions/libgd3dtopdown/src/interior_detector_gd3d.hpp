@@ -9,16 +9,16 @@
 #include <godot_cpp/classes/area3d.hpp>
 
 using namespace godot;
-class GD3Dinteriors_detector : public Area3D
+class InteriorDetectorGD3D : public Area3D
 {
-	GDCLASS(GD3Dinteriors_detector, Area3D);
+	GDCLASS(InteriorDetectorGD3D, Area3D);
 
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
 
 public:
-#include"GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 public:
 	void interior_entered(Object* area);
 	

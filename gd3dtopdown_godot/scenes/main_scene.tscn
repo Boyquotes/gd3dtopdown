@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://3u3l42q5jirt"]
+[gd_scene load_steps=20 format=3 uid="uid://3u3l42q5jirt"]
 
 [ext_resource type="PackedScene" uid="uid://5yy8nwyqhqw8" path="res://scenes/GD3Dexample_char.tscn" id="2_gnal5"]
 [ext_resource type="Shader" path="res://shaders/dissolve.gdshader" id="3_ae1d7"]
@@ -28,21 +28,29 @@ data = PackedVector3Array(-13, 0.5, 10, 13, 0.5, 10, -13, -0.5, 10, 13, 0.5, 10,
 height = 10.1324
 radius = 2.01839
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_kgo7f"]
-noise_type = 5
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_yr476"]
+frequency = 0.208
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_l7jbv"]
-noise = SubResource("FastNoiseLite_kgo7f")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_vv15p"]
+noise = SubResource("FastNoiseLite_yr476")
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_lifi1"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7vsh5"]
 render_priority = 0
 shader = ExtResource("3_ae1d7")
 shader_parameter/ammount = 0.0
-shader_parameter/current_color = Color(0.254902, 0.0313726, 0, 1)
-shader_parameter/noise = SubResource("NoiseTexture2D_l7jbv")
+shader_parameter/current_color = Color(0.462745, 0, 0, 1)
+shader_parameter/noise = SubResource("NoiseTexture2D_vv15p")
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_f3l8c"]
-material = SubResource("ShaderMaterial_lifi1")
+material = SubResource("ShaderMaterial_7vsh5")
+top_radius = 2.0
+bottom_radius = 2.0
+height = 10.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lh12x"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_edxeb"]
+material = SubResource("StandardMaterial3D_lh12x")
 top_radius = 2.0
 bottom_radius = 2.0
 height = 10.0
@@ -80,21 +88,27 @@ collision_layer = 5
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_st2nk")
 
-[node name="Column" type="GD3Dvisual_obstacle" parent="."]
+[node name="Column" type="VisualObstacleGD3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.36168, 4.66307, -3.00726)
 collision_layer = 7
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Column"]
 shape = SubResource("CylinderShape3D_j4uea")
 
-[node name="MeshInstance3d" type="GD3Dtween_mesh" parent="Column"]
+[node name="MeshInstance3d" type="TweenMeshInstanceGD3D" parent="Column"]
 shader_param = &"ammount"
 shader_param_max = 1.0
 shader_duration = 0.5
+cast_shadow = 0
 mesh = SubResource("CylinderMesh_f3l8c")
 skeleton = NodePath("")
 
-[node name="StaticBody3D" type="GD3Dselectable_node" parent="."]
+[node name="ShadowMesh" type="MeshInstance3D" parent="Column"]
+cast_shadow = 3
+mesh = SubResource("CylinderMesh_edxeb")
+skeleton = NodePath("")
+
+[node name="StaticBody3D" type="SelectableGD3D" parent="."]
 transform = Transform3D(3.67978, 0, 0, 0, 3.7956, 0, 0, 0, 2.28819, 17.0634, 1.35389, -4.94234)
 collision_layer = 5
 script = ExtResource("4_bl0vp")

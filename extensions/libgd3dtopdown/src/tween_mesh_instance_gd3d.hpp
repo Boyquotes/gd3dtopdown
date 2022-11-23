@@ -19,9 +19,9 @@
 
 using namespace godot;
 
-class GD3Dtween_mesh : public MeshInstance3D
+class TweenMeshInstanceGD3D : public MeshInstance3D
 {
-	GDCLASS(GD3Dtween_mesh, MeshInstance3D);
+	GDCLASS(TweenMeshInstanceGD3D, MeshInstance3D);
 
 protected:
 
@@ -41,7 +41,7 @@ protected:
 	void _tween_shader(float progress);
 
 public:
-#include "GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 
 	void reset_tweens();
 

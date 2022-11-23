@@ -24,10 +24,10 @@
 
 using namespace godot;
 
-class GD3Dtd_character : public CharacterBody3D {
+class CharacterGD3D : public CharacterBody3D {
 
 
-    GDCLASS(GD3Dtd_character, CharacterBody3D);
+    GDCLASS(CharacterGD3D, CharacterBody3D);
 
    
 protected:
@@ -51,7 +51,7 @@ private:
     Object* old_aim_node;
 
 public:
-#include "GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 
 public:
     PackedStringArray _get_configuration_warnings() const override;

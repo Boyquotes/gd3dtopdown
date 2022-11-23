@@ -1,27 +1,23 @@
-#include "GD3Dtd_character.hpp"
+#include "character_gd3d.hpp"
 
-#define GETSET_GD3D(FUNC) ClassDB::bind_method(D_METHOD("get_"#FUNC), &GD3Dtd_character::get_##FUNC);\
-                        ClassDB::bind_method(D_METHOD("set_"#FUNC, #FUNC), &GD3Dtd_character::set_##FUNC)
-#define ADDPROP_GD3D(PROP,TYPE) ADD_PROPERTY(PropertyInfo(Variant::TYPE, #PROP), "set_"#PROP, "get_"#PROP)
-void GD3Dtd_character::_bind_methods()
+void CharacterGD3D::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("rotate_camera", "rotation_Vector2","mouse_sensitivity","is_inverted"), &GD3Dtd_character::rotate_camera);
-    ClassDB::bind_method(D_METHOD("rotate_camera_mouse", "event", "mouse_sensitivity", "is_inverted"), &GD3Dtd_character::rotate_camera_mouse);
+    ClassDB::bind_method(D_METHOD("rotate_camera", "rotation_Vector2","mouse_sensitivity","is_inverted"), &CharacterGD3D::rotate_camera);
+    ClassDB::bind_method(D_METHOD("rotate_camera_mouse", "event", "mouse_sensitivity", "is_inverted"), &CharacterGD3D::rotate_camera_mouse);
     ClassDB::bind_method(D_METHOD("character_move","delta","input_Vector2","is_aiming","speed",
-                    "move_lerp","turn_speed","camera_predict", "camera_predict_speed"), &GD3Dtd_character::character_move);
+                    "move_lerp","turn_speed","camera_predict", "camera_predict_speed"), &CharacterGD3D::character_move);
 
-    ClassDB::bind_method(D_METHOD("set_aim_collision_mask","aim_collision_mask"), &GD3Dtd_character::set_aim_collision_mask);
-    ClassDB::bind_method(D_METHOD("get_aim_collision_mask"), &GD3Dtd_character::get_aim_collision_mask);
+    ClassDB::bind_method(D_METHOD("set_aim_collision_mask","aim_collision_mask"), &CharacterGD3D::set_aim_collision_mask);
+    ClassDB::bind_method(D_METHOD("get_aim_collision_mask"), &CharacterGD3D::get_aim_collision_mask);
 
-    ClassDB::bind_method(D_METHOD("on_parented","child"), &GD3Dtd_character::on_parented);
-    ClassDB::bind_method(D_METHOD("on_unparented","child"), &GD3Dtd_character::on_unparented);
+    ClassDB::bind_method(D_METHOD("on_parented","child"), &CharacterGD3D::on_parented);
+    ClassDB::bind_method(D_METHOD("on_unparented","child"), &CharacterGD3D::on_unparented);
 
     ADD_PROPERTY(PropertyInfo(Variant::INT, "aim_collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_aim_collision_mask", "get_aim_collision_mask");
 }
-#undef ADDPROP_GD3D
-#undef GETSET_GD3D
 
-void GD3Dtd_character::_notification(int p_what)
+
+void CharacterGD3D::_notification(int p_what)
 {
     switch (p_what) {
         case NOTIFICATION_ENTER_TREE:
@@ -53,7 +49,7 @@ void GD3Dtd_character::_notification(int p_what)
     }
 }
 
-void GD3Dtd_character::rotate_camera_mouse(const Ref<InputEvent>& p_event, const float mouse_sensitivity, const bool is_inverted)
+void CharacterGD3D::rotate_camera_mouse(const Ref<InputEvent>& p_event, const float mouse_sensitivity, const bool is_inverted)
 {
     Ref<InputEventMouseMotion> m = p_event;
     
@@ -67,7 +63,7 @@ void GD3Dtd_character::rotate_camera_mouse(const Ref<InputEvent>& p_event, const
     p_camera->look_at(camera_follow_position);
 }
 
-void GD3Dtd_character::rotate_camera(const Vector2& motion,const float mouse_sensitivity,const bool is_inverted)
+void CharacterGD3D::rotate_camera(const Vector2& motion,const float mouse_sensitivity,const bool is_inverted)
 {
     if (!initialized) return;
 
@@ -78,7 +74,7 @@ void GD3Dtd_character::rotate_camera(const Vector2& motion,const float mouse_sen
     p_camera->look_at(camera_follow_position);
 }
 
-void GD3Dtd_character::character_move(const double delta, const Vector2& input_dir, const bool is_aiming,
+void CharacterGD3D::character_move(const double delta, const Vector2& input_dir, const bool is_aiming,
         const float speed, const float move_lerp, const float turn_speed,
         const float camera_predict, const float camera_predict_speed)
 {
@@ -132,7 +128,7 @@ void GD3Dtd_character::character_move(const double delta, const Vector2& input_d
     p_camera->look_at(camera_follow_position + cam_height);
 }
 
-void GD3Dtd_character::handle_aim(const bool aiming,Vector3& lookat_pos)
+void CharacterGD3D::handle_aim(const bool aiming,Vector3& lookat_pos)
 {
     if (!aiming)
     {
@@ -158,7 +154,7 @@ void GD3Dtd_character::handle_aim(const bool aiming,Vector3& lookat_pos)
 
     handle_aim_node(ray_dict["collider"]);
 }
-void GD3Dtd_character::handle_aim_node(Object* nd)
+void CharacterGD3D::handle_aim_node(Object* nd)
 {
     if (old_aim_node == nd) return;
 
@@ -171,14 +167,14 @@ void GD3Dtd_character::handle_aim_node(Object* nd)
     old_aim_node = nd;
 }
 
-void GD3Dtd_character::set_aim_collision_mask(const uint32_t set)
+void CharacterGD3D::set_aim_collision_mask(const uint32_t set)
 {
     aim_collision_mask = set;
     ProjectSettings::get_singleton()->set_setting("gd3d/aim_ignore_mask", aim_collision_mask);
 }
-uint32_t GD3Dtd_character::get_aim_collision_mask() const { return aim_collision_mask; }
+uint32_t CharacterGD3D::get_aim_collision_mask() const { return aim_collision_mask; }
 
-void GD3Dtd_character::on_parented(Variant v_child)
+void CharacterGD3D::on_parented(Variant v_child)
 {
     Node* p_child = cast_to<Node>(v_child);
     {
@@ -212,7 +208,7 @@ void GD3Dtd_character::on_parented(Variant v_child)
     else initialized = false;
     update_configuration_warnings();
 }
-void GD3Dtd_character::on_unparented(Variant v_child)
+void CharacterGD3D::on_unparented(Variant v_child)
 {
     
     Node* p_child = cast_to<Node>(v_child);
@@ -225,7 +221,7 @@ void GD3Dtd_character::on_unparented(Variant v_child)
     else initialized = false;
     update_configuration_warnings();
 }
-PackedStringArray GD3Dtd_character::_get_configuration_warnings() const {
+PackedStringArray CharacterGD3D::_get_configuration_warnings() const {
     PackedStringArray warnings = Node::_get_configuration_warnings();
     
     if(!p_camera) {
@@ -237,11 +233,11 @@ PackedStringArray GD3Dtd_character::_get_configuration_warnings() const {
 }
 
 //Not exposed in godot cpp
-void GD3Dtd_character::add_child_notify(Node* p_child)
+void CharacterGD3D::add_child_notify(Node* p_child)
 {
    // on_parented(p_child);
 }
-void GD3Dtd_character::remove_child_notify(Node* p_child)
+void CharacterGD3D::remove_child_notify(Node* p_child)
 {
   //  on_unparented(p_child);
 }

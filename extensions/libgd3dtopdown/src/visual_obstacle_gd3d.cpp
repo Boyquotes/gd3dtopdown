@@ -1,12 +1,12 @@
-#include "GD3Dvisual_obstacle.hpp"
+#include "visual_obstacle_gd3d.hpp"
 
-void GD3Dvisual_obstacle::_bind_methods()
+void VisualObstacleGD3D::_bind_methods()
 {
 	ADD_SIGNAL(MethodInfo("obstacle_entered_signal", PropertyInfo(Variant::OBJECT, "object")));
 	ADD_SIGNAL(MethodInfo("obstacle_exited_signal", PropertyInfo(Variant::OBJECT, "object")));
 }
 
-void  GD3Dvisual_obstacle::_notification(int p_what)
+void  VisualObstacleGD3D::_notification(int p_what)
 {
 	
 	switch (p_what) {
@@ -21,15 +21,15 @@ void  GD3Dvisual_obstacle::_notification(int p_what)
 		} break;
 		case NOTIFICATION_IAREA_ENTERED:
 		{
-			GD3Dinterior_area* p_area = dynamic_cast<GD3Dinterior_area*>(get_parent());
+			InteriorAreaGD3D* p_area = dynamic_cast<InteriorAreaGD3D*>(get_parent());
 			if (p_area)
 			{
-				if(p_area->should_invisible())obstacle_entered();
+				if(p_area->should_invisible()) obstacle_entered();
 			}
 		}break;
 		case NOTIFICATION_IAREA_EXITED:
 		{
-			GD3Dinterior_area* p_area = dynamic_cast<GD3Dinterior_area*>(get_parent());
+			InteriorAreaGD3D* p_area = dynamic_cast<InteriorAreaGD3D*>(get_parent());
 			if (p_area)
 			{
 				if (p_area->should_invisible() ||
@@ -45,14 +45,14 @@ void  GD3Dvisual_obstacle::_notification(int p_what)
 		case NOTIFICATION_CHAR_VISUAL_EXITED:
 		{
 			entered_by_char = false;
-			GD3Dinterior_area* p_area = dynamic_cast<GD3Dinterior_area*>(get_parent());
+			InteriorAreaGD3D* p_area = dynamic_cast<InteriorAreaGD3D*>(get_parent());
 			if (p_area && p_area->should_invisible()) return;
 			obstacle_exited();
 		}break;
 	}
 }
 
-void GD3Dvisual_obstacle::obstacle_entered()
+void VisualObstacleGD3D::obstacle_entered()
 {
 	if (is_invisible) return;
 	is_invisible = true;
@@ -60,7 +60,7 @@ void GD3Dvisual_obstacle::obstacle_entered()
 	propagate_notification(NOTIFICATION_VOBSTACLE_INVISIBLE);
 	emit_signal("obstacle_entered_signal", get_rid(), this);
 }
-void GD3Dvisual_obstacle::obstacle_exited()
+void VisualObstacleGD3D::obstacle_exited()
 {
 	if (!is_invisible) return;
 	is_invisible = false;

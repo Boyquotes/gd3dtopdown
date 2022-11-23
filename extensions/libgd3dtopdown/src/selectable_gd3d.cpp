@@ -1,13 +1,13 @@
-#include "GD3Dselectable_node.hpp"
+#include "selectable_gd3d.hpp"
 
-void GD3Dselectable_node::_bind_methods()
+void SelectableGD3D::_bind_methods()
 {
     ADD_SIGNAL(MethodInfo("selected_signal"));
     ADD_SIGNAL(MethodInfo("unselected_signal"));
     ADD_SIGNAL(MethodInfo("selected_signal_info", PropertyInfo(Variant::RID, "object_rid"), PropertyInfo(Variant::OBJECT, "object")));
     ADD_SIGNAL(MethodInfo("unselected_signal_info", PropertyInfo(Variant::RID, "object_rid"), PropertyInfo(Variant::OBJECT, "object")));
 }
-void GD3Dselectable_node::_notification(int p_what)
+void SelectableGD3D::_notification(int p_what)
 {
     switch (p_what)
     {
@@ -21,19 +21,19 @@ void GD3Dselectable_node::_notification(int p_what)
         }break;
     }
 }
-void GD3Dselectable_node::on_selected()
+void SelectableGD3D::on_selected()
 {
     selected = true;
     emit_signal("selected_signal");
     emit_signal("selected_signal_info", get_rid(), this);
 }
-void GD3Dselectable_node::on_unselected()
+void SelectableGD3D::on_unselected()
 {
     selected = false;
     emit_signal("unselected_signal");
     emit_signal("unselected_signal_info", get_rid(), this);
 }
-bool GD3Dselectable_node::is_selected()
+bool SelectableGD3D::is_selected()
 {
     return selected;
 }

@@ -14,16 +14,16 @@
 
 using namespace godot;
 
-class GD3Dinterior_area : public Area3D
+class InteriorAreaGD3D : public Area3D
 {
-	GDCLASS(GD3Dinterior_area, Area3D);
+	GDCLASS(InteriorAreaGD3D, Area3D);
 
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
 	bool entered;
 public:
-#include "GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 
 	bool is_entered();
 	bool should_invisible();

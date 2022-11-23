@@ -9,13 +9,13 @@
 #include <godot_cpp/classes/static_body3d.hpp>
 
 #include <godot_cpp/classes/project_settings.hpp>
-#include "GD3Dinterior_area.hpp"
+#include "interior_area_gd3d.hpp"
 
 using namespace godot;
 
-class GD3Dvisual_obstacle : public StaticBody3D
+class VisualObstacleGD3D : public StaticBody3D
 {
-	GDCLASS(GD3Dvisual_obstacle, StaticBody3D)
+	GDCLASS(VisualObstacleGD3D, StaticBody3D)
 
 protected:
 	void _notification(int p_what);
@@ -27,7 +27,7 @@ private:
 	bool entered_by_char;
 
 public:
-#include "GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 
 	void obstacle_entered();
 	void obstacle_exited();

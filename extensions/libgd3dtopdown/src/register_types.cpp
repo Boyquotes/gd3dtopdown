@@ -5,13 +5,13 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "GD3Dtd_character.hpp"
-#include "GD3Dvisual_obstacle.hpp"
-#include "GD3Dinterior_area.hpp"
-#include "GD3Dselectable_node.hpp"
-#include "GD3Dinteriors_detector.hpp"
-#include "GD3Dvisual_detector.hpp"
-#include "GD3Dtween_mesh.h"
+#include "character_gd3d.hpp"
+#include "visual_obstacle_gd3d.hpp"
+#include "visual_detector_gd3d.hpp"
+#include "interior_area_gd3d.hpp"
+#include "interior_detector_gd3d.hpp"
+#include "selectable_gd3d.hpp"
+#include "tween_mesh_instance_gd3d.hpp"
 using namespace godot;
 
 void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
@@ -21,13 +21,13 @@ void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
 		return;
 	}
     
-    ClassDB::register_class<GD3Dtd_character>();
-    ClassDB::register_class<GD3Dvisual_obstacle>();
-    ClassDB::register_class<GD3Dinterior_area>();
-    ClassDB::register_class<GD3Dselectable_node>();
-    ClassDB::register_class<GD3Dinteriors_detector>();
-    ClassDB::register_class<GD3Dvisual_detector>();
-    ClassDB::register_class<GD3Dtween_mesh>();
+    ClassDB::register_class<CharacterGD3D>();
+    ClassDB::register_class<VisualObstacleGD3D>();
+    ClassDB::register_class<VisualDetectorGD3D>();
+    ClassDB::register_class<InteriorAreaGD3D>();
+    ClassDB::register_class<InteriorDetectorGD3D>();
+    ClassDB::register_class<SelectableGD3D>();
+    ClassDB::register_class<TweenMeshInstanceGD3D>();
 
 }
 void uninitialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)

@@ -11,9 +11,9 @@
 
 using namespace godot;
 
-class GD3Dselectable_node : public StaticBody3D
+class SelectableGD3D : public StaticBody3D
 {
-	GDCLASS(GD3Dselectable_node, StaticBody3D);
+	GDCLASS(SelectableGD3D, StaticBody3D);
 
 protected:
 	static void _bind_methods();
@@ -21,7 +21,7 @@ protected:
 
 	bool selected;
 public:
-#include "GD3Dhelpers.hpp"
+#include "helpers_gd3d.hpp"
 
 	void on_selected();
 	void on_unselected();

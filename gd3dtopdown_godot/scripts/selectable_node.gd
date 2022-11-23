@@ -1,4 +1,4 @@
-extends GD3Dselectable_node
+extends SelectableGD3D
 
 
 func _ready():
