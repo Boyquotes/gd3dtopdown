@@ -21,7 +21,6 @@
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/physics_direct_space_state3d.hpp>
 
-#include "GD3Dselectable_node.hpp"
 
 using namespace godot;
 
@@ -32,8 +31,8 @@ class GD3Dtd_character : public CharacterBody3D {
 
    
 protected:
-    void _notification(int p_what);
     static void _bind_methods();
+    void _notification(int p_what);
 
 private:
 
@@ -51,10 +50,10 @@ private:
     uint32_t aim_collision_mask = 0;
     Object* old_aim_node;
 
-
 public:
 #include "GD3Dhelpers.hpp"
 
+public:
     PackedStringArray _get_configuration_warnings() const override;
     void on_parented(Variant v_child);
     void on_unparented(Variant v_child);

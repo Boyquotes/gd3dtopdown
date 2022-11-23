@@ -37,7 +37,7 @@ noise = SubResource("FastNoiseLite_kgo7f")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lifi1"]
 render_priority = 0
 shader = ExtResource("3_ae1d7")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.254902, 0.0313726, 0, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_l7jbv")
 
@@ -87,7 +87,10 @@ collision_layer = 7
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Column"]
 shape = SubResource("CylinderShape3D_j4uea")
 
-[node name="MeshInstance3d" type="MeshInstance3D" parent="Column"]
+[node name="MeshInstance3d" type="GD3Dtween_mesh" parent="Column"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("CylinderMesh_f3l8c")
 skeleton = NodePath("")
 
