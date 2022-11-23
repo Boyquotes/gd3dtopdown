@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://deatvd455ffyp"]
+[gd_scene load_steps=46 format=3 uid="uid://deatvd455ffyp"]
 
 [ext_resource type="Shader" path="res://shaders/dissolve.gdshader" id="2_3ckos"]
 
@@ -16,7 +16,7 @@ noise = SubResource("FastNoiseLite_qmysk")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ptws5"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -73,7 +73,7 @@ points = PackedVector3Array(0.000158444, 0.0305936, -2, 1.99996, 3.90786, 0, 2, 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_syn8x"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -99,7 +99,7 @@ points = PackedVector3Array(0.000158444, 0.0305936, -2, 1.99996, 3.90786, 0, 2, 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hgyl2"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -131,7 +131,7 @@ size = Vector3(1, 4, 1.6)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2esqa"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -160,7 +160,7 @@ points = PackedVector3Array(-2.22045e-16, 0.176309, -5.88364, 2, 7.70571, -0.236
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_eqr8y"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -186,7 +186,7 @@ points = PackedVector3Array(0, 0, -2, 0, 0, 0, 0, 4, -2, 2, 0, -2, 2, 0, 0, 0, 4
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_m3xop"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -212,7 +212,7 @@ points = PackedVector3Array(0, 0, -6, 0, 4, -6, 2.00002, 0, -6, 0, 0, 0, 2.00002
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_slxwu"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -238,7 +238,7 @@ points = PackedVector3Array(0, 0, -2, 0, 0, 0, 0, 4, -2, 2, 0, -2, 2, 0, 0, 0, 4
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_eci47"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -261,7 +261,7 @@ blend_shape_mode = 0
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bg3er"]
 render_priority = 0
 shader = ExtResource("2_3ckos")
-shader_parameter/ammount = null
+shader_parameter/ammount = 0.0
 shader_parameter/current_color = Color(0.670588, 0.670588, 0.670588, 1)
 shader_parameter/noise = SubResource("NoiseTexture2D_ku32y")
 
@@ -316,12 +316,15 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 
+[sub_resource type="BoxMesh" id="BoxMesh_0amqv"]
+size = Vector3(8, 10, 1)
+
 [node name="house" type="Node3D"]
 
 [node name="BottomFloor_area" type="GD3Dinterior_area" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.39846, 1.62885, 7.43529)
 collision_layer = 2
-collision_mask = 0
+collision_mask = 2
 priority = 1.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area"]
@@ -329,11 +332,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.245262, 0.471406, 0.487031)
 shape = SubResource("BoxShape3D_08g0c")
 
 [node name="Wall_top_b" type="GD3Dvisual_obstacle" parent="BottomFloor_area"]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(-0.25, 0, -1.30337e-06, 0, 1, 9.75782e-19, 8.14604e-08, 0, -4, -3.85154, 2.37115, -11.4353)
 collision_layer = 7
 collision_mask = 0
@@ -341,16 +339,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_b"]
 shape = SubResource("ConvexPolygonShape3D_qr38n")
 
-[node name="Wall_002" type="MeshInstance3D" parent="BottomFloor_area/Wall_top_b"]
+[node name="Wall_002" type="GD3Dtween_mesh" parent="BottomFloor_area/Wall_top_b"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_onjft")
 skeleton = NodePath("")
 
 [node name="Wall_top_f" type="GD3Dvisual_obstacle" parent="BottomFloor_area"]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(0.25, 0, 0, 0, 1, 0, 0, 0, 4, 4.14846, 2.37115, 12.5647)
 collision_layer = 7
 collision_mask = 0
@@ -358,16 +354,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_f"]
 shape = SubResource("ConvexPolygonShape3D_dqthf")
 
-[node name="Wall_003" type="MeshInstance3D" parent="BottomFloor_area/Wall_top_f"]
+[node name="Wall_003" type="GD3Dtween_mesh" parent="BottomFloor_area/Wall_top_f"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_pq7l1")
 skeleton = NodePath("")
 
 [node name="Wall_top_r" type="GD3Dvisual_obstacle" parent="BottomFloor_area"]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(0, 0, 4, 0, 1, 1.13687e-12, -0.25, 0, 0, 4.14846, 2.37115, -11.4353)
 collision_layer = 7
 collision_mask = 0
@@ -375,16 +369,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_r"]
 shape = SubResource("ConvexPolygonShape3D_h4jkw")
 
-[node name="Wall_001" type="MeshInstance3D" parent="BottomFloor_area/Wall_top_r"]
+[node name="Wall_001" type="GD3Dtween_mesh" parent="BottomFloor_area/Wall_top_r"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_xtegk")
 skeleton = NodePath("")
 
 [node name="Wall_top_l" type="GD3Dvisual_obstacle" parent="BottomFloor_area"]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(1.3411e-07, 0, -4, 2.71051e-20, 1, -1.13687e-12, 0.25, 0, 2.14577e-06, -3.85154, 2.37115, 12.5647)
 collision_layer = 7
 collision_mask = 0
@@ -392,16 +384,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/Wall_top_l"]
 shape = SubResource("ConvexPolygonShape3D_jj1s8")
 
-[node name="Wall_004" type="MeshInstance3D" parent="BottomFloor_area/Wall_top_l"]
+[node name="Wall_004" type="GD3Dtween_mesh" parent="BottomFloor_area/Wall_top_l"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_r7sav")
 skeleton = NodePath("")
 
 [node name="Top_level_floor" type="GD3Dvisual_obstacle" parent="BottomFloor_area"]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(1.49012e-07, -1, 0, 0.25, 5.96046e-07, 0, 0, 0, 4, 4.14846, 2.37115, 12.5647)
 collision_layer = 7
 collision_mask = 0
@@ -418,25 +408,23 @@ shape = SubResource("BoxShape3D_467yf")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.66551, 1.98449, -0.797602)
 shape = SubResource("BoxShape3D_ntk5w")
 
-[node name="Floor" type="MeshInstance3D" parent="BottomFloor_area/Top_level_floor"]
+[node name="Floor" type="GD3Dtween_mesh" parent="BottomFloor_area/Top_level_floor"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_iagkn")
 skeleton = NodePath("")
 
 [node name="TopFloor_area" type="GD3Dinterior_area" parent="BottomFloor_area"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13343, 4.85537, 0.10863)
 collision_layer = 2
-collision_mask = 0
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/TopFloor_area"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00167799, -0.256963, 0.487031)
 shape = SubResource("BoxShape3D_2skhp")
 
 [node name="Roof" type="GD3Dvisual_obstacle" parent="BottomFloor_area/TopFloor_area"]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(1.49012e-07, -1, 0, 0.25, 5.96046e-07, 0, 0, 0, 4, 4.01503, 1.51578, 12.4561)
 collision_layer = 7
 collision_mask = 0
@@ -444,16 +432,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BottomFloor_area/TopFloor_area/Roof"]
 shape = SubResource("ConvexPolygonShape3D_cjc7u")
 
-[node name="Roof" type="MeshInstance3D" parent="BottomFloor_area/TopFloor_area/Roof"]
+[node name="Roof" type="GD3Dtween_mesh" parent="BottomFloor_area/TopFloor_area/Roof"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_ld3g2")
 skeleton = NodePath("")
 
 [node name="Wall_bottom_r" type="GD3Dvisual_obstacle" parent="."]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(0, 0, 4, 0, 1, 0, -0.25, 0, 0, -0.25, 0, -4.00001)
 collision_layer = 7
 collision_mask = 0
@@ -461,16 +447,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_bottom_r"]
 shape = SubResource("ConvexPolygonShape3D_c5wqq")
 
-[node name="Wall_002001" type="MeshInstance3D" parent="Wall_bottom_r"]
+[node name="Wall_002001" type="GD3Dtween_mesh" parent="Wall_bottom_r"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_xe3vk")
 skeleton = NodePath("")
 
 [node name="Wall_bottom_b" type="GD3Dvisual_obstacle" parent="."]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(-0.25, 0, -1.30337e-06, 0, 1, 0, 8.14603e-08, 0, -4, -8.25, 0, -4.00001)
 collision_layer = 7
 collision_mask = 0
@@ -478,16 +462,14 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_bottom_b"]
 shape = SubResource("ConvexPolygonShape3D_jd38k")
 
-[node name="Wall_003001" type="MeshInstance3D" parent="Wall_bottom_b"]
+[node name="Wall_003001" type="GD3Dtween_mesh" parent="Wall_bottom_b"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_pdiul")
 skeleton = NodePath("")
 
 [node name="Wall_bottom_l" type="GD3Dvisual_obstacle" parent="."]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(1.3411e-07, 0, -4, 0, 1, 0, 0.25, 0, 2.14577e-06, -8.25, 0, 20)
 collision_layer = 7
 collision_mask = 0
@@ -495,21 +477,22 @@ collision_mask = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_bottom_l"]
 shape = SubResource("ConvexPolygonShape3D_m6cgo")
 
-[node name="Wall_001001" type="MeshInstance3D" parent="Wall_bottom_l"]
+[node name="Wall_001001" type="GD3Dtween_mesh" parent="Wall_bottom_l"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_y7bwc")
 skeleton = NodePath("")
 
 [node name="Wall_door" type="GD3Dvisual_obstacle" parent="."]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 0.5
 transform = Transform3D(0.25, 0, 0, 0, 1, 0, 0, 0, 4, -0.25, 0, 20)
 collision_layer = 7
 collision_mask = 0
 
-[node name="Wall_004001" type="MeshInstance3D" parent="Wall_door"]
+[node name="Wall_004001" type="GD3Dtween_mesh" parent="Wall_door"]
+shader_param = &"ammount"
+shader_param_max = 1.0
+shader_duration = 0.5
 mesh = SubResource("ArrayMesh_tdb7v")
 skeleton = NodePath("")
 
@@ -536,3 +519,8 @@ shape = SubResource("ConvexPolygonShape3D_smqor")
 [node name="Staris" type="MeshInstance3D" parent="Stairs"]
 mesh = SubResource("ArrayMesh_b3f35")
 skeleton = NodePath("")
+
+[node name="ShadowMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 23.7333, -4.26833, 3.4348, 8.05315)
+cast_shadow = 3
+mesh = SubResource("BoxMesh_0amqv")

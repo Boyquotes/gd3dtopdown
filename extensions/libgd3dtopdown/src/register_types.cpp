@@ -9,6 +9,9 @@
 #include "GD3Dvisual_obstacle.hpp"
 #include "GD3Dinterior_area.hpp"
 #include "GD3Dselectable_node.hpp"
+#include "GD3Dinteriors_detector.hpp"
+#include "GD3Dvisual_detector.hpp"
+#include "GD3Dtween_mesh.h"
 using namespace godot;
 
 void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
@@ -22,6 +25,9 @@ void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
     ClassDB::register_class<GD3Dvisual_obstacle>();
     ClassDB::register_class<GD3Dinterior_area>();
     ClassDB::register_class<GD3Dselectable_node>();
+    ClassDB::register_class<GD3Dinteriors_detector>();
+    ClassDB::register_class<GD3Dvisual_detector>();
+    ClassDB::register_class<GD3Dtween_mesh>();
 
 }
 void uninitialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)

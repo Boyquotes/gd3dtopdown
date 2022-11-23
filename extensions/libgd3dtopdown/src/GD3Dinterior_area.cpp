@@ -1,34 +1,36 @@
 #include "GD3Dinterior_area.hpp"
 
-GD3Dinterior_area::GD3Dinterior_area() { entered = false; }
-
-GD3Dinterior_area::~GD3Dinterior_area() {}
-
-void GD3Dinterior_area::_bind_methods()
-{
-    ClassDB::bind_method(D_METHOD("on_enter_area"), &GD3Dinterior_area::on_enter_area);
-    ClassDB::bind_method(D_METHOD("on_exit_area"), &GD3Dinterior_area::on_exit_area);
-
-    ADD_SIGNAL(MethodInfo("entered_signal", PropertyInfo(Variant::RID, "object_rid"), PropertyInfo(Variant::OBJECT, "object"), PropertyInfo(Variant::INT, "ignoremask")));
-    ADD_SIGNAL(MethodInfo("exited_signal", PropertyInfo(Variant::RID, "object_rid"), PropertyInfo(Variant::OBJECT, "object"), PropertyInfo(Variant::INT, "ignoremask")));
-    ADD_SIGNAL(MethodInfo("entered_signal_mask", PropertyInfo(Variant::INT, "ignoremask")));
-    ADD_SIGNAL(MethodInfo("exited_signal_mask", PropertyInfo(Variant::INT, "ignoremask")));
+void GD3Dinterior_area::_bind_methods(){}
+void GD3Dinterior_area::_notification(int p_what){
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE:
+        {
+            entered = false;
+        } break;
+        case NOTIFICATION_CHAR_AREA_ENTERED:
+        {
+            entered = true;
+            propagate_notification(NOTIFICATION_IAREA_ENTERED);
+        }break;
+        case NOTIFICATION_CHAR_AREA_EXITED:
+        {
+            entered = false;
+            propagate_notification(NOTIFICATION_IAREA_EXITED);
+        }break;
+    }
 }
 
-void GD3Dinterior_area::on_enter_area(uint32_t ignoremask)
-{
-    entered = true;
-    emit_signal("entered_signal", get_rid(), this, ignoremask);
-    emit_signal("entered_signal_mask", ignoremask);
-}
-void GD3Dinterior_area::on_exit_area(uint32_t ignoremask)
-{
-    entered = false;
-    emit_signal("exited_signal", get_rid(), this, ignoremask);
-    emit_signal("exited_signal_mask", ignoremask);
-}
 bool GD3Dinterior_area::is_entered()
 {
+    return entered;
+}
+bool GD3Dinterior_area::should_invisible()
+{
+    GD3Dinterior_area* p_area = dynamic_cast<GD3Dinterior_area*>(get_parent());
+    if (p_area)
+    {
+        if(p_area->should_invisible()) return true;
+    }
     return entered;
 }
 

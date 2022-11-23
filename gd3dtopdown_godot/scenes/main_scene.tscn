@@ -81,11 +81,6 @@ collision_layer = 5
 shape = SubResource("ConcavePolygonShape3D_st2nk")
 
 [node name="Column" type="GD3Dvisual_obstacle" parent="."]
-auto_ignore = true
-auto_invisible = true
-shader_param = &"ammount"
-shader_param_max = 1.0
-shader_duration = 1.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.36168, 4.66307, -3.00726)
 collision_layer = 7
 
@@ -108,7 +103,4 @@ shape = SubResource("BoxShape3D_udsyo")
 mesh = SubResource("BoxMesh_100tx")
 
 [node name="GD3Dexample_char" parent="." instance=ExtResource("2_gnal5")]
-interiors_collision_mask = 2
-visual_collision_mask = 2
-aim_collision_mask = 4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.570886, 0)

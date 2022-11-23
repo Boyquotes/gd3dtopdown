@@ -1,8 +1,8 @@
+#ifndef GD3DINTERIOR_DETECTOR
+#define GD3DINTERIOR_DETECTOR
 #ifdef WIN32
 #include <windows.h>
 #endif
-#ifndef GD3DINTERIOR_AREA
-#define GD3DINTERIOR_AREA
 
 #include <godot_cpp/core/binder_common.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
@@ -17,17 +17,16 @@ using namespace godot;
 class GD3Dinterior_area : public Area3D
 {
 	GDCLASS(GD3Dinterior_area, Area3D);
-	GD3Dinterior_area();
-	~GD3Dinterior_area();
 
 protected:
 	static void _bind_methods();
+	void _notification(int p_what);
 	bool entered;
 public:
+#include "GD3Dhelpers.hpp"
 
-	void on_enter_area(uint32_t ignoremask);
-	void on_exit_area(uint32_t ignoremask);
 	bool is_entered();
+	bool should_invisible();
 };
 
 
