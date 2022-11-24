@@ -422,3 +422,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 *.dblite
+.vscode/**
+.vscode
