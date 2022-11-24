@@ -2,7 +2,7 @@
 import os
 import sys
 
-env = SConscript("../godot-cpp/SConstruct")
+env = SConscript("godot-cpp/SConstruct")
 
 # For the reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -20,7 +20,7 @@ if env["target"] in ["editor", "template_debug"]:
 sources = Glob("src/*.cpp")
 
 library = env.SharedLibrary(
-    "../../gd3dtopdown_godot/bin/libGD3Dtopdown{}{}".format(
+    "../../bin/gd3d_topdown{}{}".format(
          env["suffix"], env["SHLIBSUFFIX"]
     ),
     source=sources,

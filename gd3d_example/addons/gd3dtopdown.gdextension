@@ -1,0 +1,14 @@
+[configuration]
+
+entry_symbol = "GD3Dtopdown_library_init"
+
+[libraries]
+
+windows.debug.x86_64 = "res://addons/bin/gd3d_topdown.windows.template_debug.x86_64.dll"
+windows.debug.x86_32 = "res://addons/bin/gd3d_topdown.windows.template_debug.x86_32.dll"
+linux.debug.x86_64 = "res://addons/bin/gd3d_topdown.linux.template_debug.x86_64.so"
+linux.debug.x86_32 = "res://addons/bin/gd3d_topdown.linux.template_debug.x86_32.so"
+windows.release.x86_64 = "res://addons/bin/gd3d_topdown.windows.template_release.x86_64.dll"
+windows.release.x86_32 = "res://addons/bin/gd3d_topdown.windows.template_release.x86_32.dll"
+linux.release.x86_64 = "res://addons/bin/gd3d_topdown.linux.template_release.x86_64.so"
+linux.release.x86_32 = "res://addons/bin/gd3d_topdown.linux.template_release.x86_32.so"
