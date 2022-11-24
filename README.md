@@ -14,7 +14,7 @@ Clone the project with submodules
 ```
 git clone --recurse-submodules git@github.com:jquinl/gd3dtopdown_project.git
 ```  
-The source library is in `gd3d_example/addons/lib/gd3dtopdown/` here you can find the SConstruct file, which need the godot-cpp submodule in the same folder  
+The source library is in `gd3d_example/addons/lib/gd3dtopdown/` here you can find the SConstruct file, which needs the godot-cpp submodule in the same folder `gd3d_example/addons/lib/gd3dtopdown/godot-cpp`  
 ```
 cd gd3d_example/addons/lib/gd3dtopdown/
 scons target=template_debug
@@ -24,7 +24,7 @@ If your project has a different folder system:
 
 1. The binary will be placed in `gd3d_example/addons/bin`  
 
-2. The needed `.gdextension` file can be found in `gd3d_example/addons/gd3dtopdown.gdextension`  make sure you place it inside your folder and modify it to match the location of the binaries in your project.
+2. The needed `.gdextension` file can be found in `gd3d_example/addons/lib/gd3dtopdown.gdextension`  make sure you place it inside your folder and modify it to match the location of the binaries in your project.
 
 3. Include a `.gdignore` file to avoid reloading the engine when new `.obj` files are generated.  
 
