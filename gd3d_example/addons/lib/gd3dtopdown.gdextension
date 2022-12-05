@@ -1,6 +1,6 @@
 [configuration]
 
-entry_symbol = "GD3Dtopdown_library_init"
+entry_symbol = "gd3d_topdown_library_init"
 
 [libraries]
 

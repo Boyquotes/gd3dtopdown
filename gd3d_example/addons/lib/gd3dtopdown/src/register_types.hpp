@@ -5,7 +5,7 @@
 
 using namespace godot;
 
-void initialize_gd3dtopdown_module(ModuleInitializationLevel p_level);
-void uinitialize_gd3dtopdown_module(ModuleInitializationLevel p_level);
+void initialize_gd3d_topdown_module(ModuleInitializationLevel p_level);
+void uinitialize_gd3d_topdown_module(ModuleInitializationLevel p_level);
 
 #endif

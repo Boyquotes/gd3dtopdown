@@ -14,7 +14,7 @@
 #include "tween_mesh_instance_gd3d.hpp"
 using namespace godot;
 
-void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
+void initialize_gd3d_topdown_module(ModuleInitializationLevel p_level)
 {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     {
@@ -30,7 +30,7 @@ void initialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
     ClassDB::register_class<TweenMeshInstanceGD3D>();
 
 }
-void uninitialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
+void uninitialize_gd3d_topdown_module(ModuleInitializationLevel p_level)
 {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) 
     {
@@ -39,11 +39,11 @@ void uninitialize_GD3Dtopdown_module(ModuleInitializationLevel p_level)
 }
 
 extern "C" {
-GDNativeBool GDN_EXPORT GD3Dtopdown_library_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
+GDNativeBool GDN_EXPORT gd3d_topdown_library_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
     godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
-    init_obj.register_initializer(initialize_GD3Dtopdown_module);
-    init_obj.register_terminator(uninitialize_GD3Dtopdown_module);
+    init_obj.register_initializer(initialize_gd3d_topdown_module);
+    init_obj.register_terminator(uninitialize_gd3d_topdown_module);
 
     init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
     return init_obj.init();
