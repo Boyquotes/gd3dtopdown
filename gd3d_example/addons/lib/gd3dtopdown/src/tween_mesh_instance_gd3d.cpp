@@ -40,6 +40,11 @@ void TweenMeshInstanceGD3D::_notification(int p_what)
 			if (material)
 				reverse_tween();
 		}break;
+		case NOTIFICATION_EXIT_TREE:
+		{
+			tw_invisible->unreference();
+			tw_visible->unreference();
+		}break;
 	}
 }
 void TweenMeshInstanceGD3D::start_tween()
